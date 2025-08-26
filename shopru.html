@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroDesign | Премиум витрины</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00cfff;
+      --accent: #ffffff;
+      --dark-bg: #000013;
+      --card-bg: linear-gradient(145deg, #0a1e30, #06121e);
+      --text-light: #e0f7ff;
+      --badge-new: #ff4d8d;
+      --badge-hit: #00cfff;
+      --badge-sale: #ff9f43;
+      --badge-exclusive: #9c4dff;
+    }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #000;
+      color: white;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    body.loaded .preloader {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.5s ease;
+    }
+    
+    .preloader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+    
+    .preloader-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    
+    .preloader-logo .logo-icon {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+    
+    .spinner {
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+    
+    .spinner-sector {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 8px solid transparent;
+      animation: rotate 1.5s ease-in-out infinite;
+    }
+    
+    .spinner-sector-blue {
+      border-top-color: var(--primary);
+      animation-delay: 0.1s;
+    }
+    
+    .spinner-sector-white {
+      border-top-color: var(--accent);
+      animation-delay: 0.2s;
+    }
+    
+    @keyframes rotate {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1000;
+      background-color: #000013;
+      background-image: linear-gradient(to bottom, #000013 0%, #000025 100%);
+    }
+    
+    .glow-effect {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+      filter: blur(100px);
+      z-index: -999;
+      pointer-events: none;
+      opacity: 0.15;
+    }
+    
+    .glow-effect:nth-child(1) {
+      top: 20%;
+      left: 10%;
+    }
+    
+    .glow-effect:nth-child(2) {
+      width: 200px;
+      height: 200px;
+      bottom: 15%;
+      right: 8%;
+      background: radial-gradient(circle, var(--accent), transparent 70%);
+      filter: blur(80px);
+    }
+    
+    header {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 20px 5%;
+      background: rgba(0, 10, 20, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+      position: sticky; 
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0, 207, 255, 0.2);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin-right: 10px;
+      transition: transform 0.5s ease;
+    }
+    
+    .logo:hover .logo-icon {
+      transform: rotate(15deg) scale(1.1);
+    }
+    
+    header h1 {
+      font-size: 2rem;
+      background: linear-gradient(90deg, #00cfff, #3399ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+    
+    nav a {
+      color: #99ccff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 8px 0;
+      font-size: 0.95rem;
+    }
+    
+    nav a.active {
+      color: white;
+    }
+    
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+    
+    nav a:hover::after, nav a.active::after {
+      width: 100%;
+    }
+    
+    nav a:hover {
+      color: white;
+    }
+    
+    .cart-btn {
+      background: rgba(0, 207, 255, 0.1);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      font-size: 0.95rem;
+    }
+    
+    .cart-btn:hover {
+      background: var(--primary);
+      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 207, 255, 0.4);
+    }
+    
+    .cart-count {
+      background: var(--accent);
+      color: #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+      transition: transform 0.3s ease;
+    }
+    
+    .cart-btn:hover .cart-count {
+      transform: scale(1.2);
+    }
+    
+    .search-container {
+      display: flex;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 5%;
+      animation: fadeIn 0.8s ease-out 0.5s both;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .search-bar {
+      position: relative;
+      max-width: 600px;
+      width: 100%;
+    }
+    
+    .search-bar input {
+      padding: 14px 30px 14px 50px;
+      width: 100%;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      border: 1px solid rgba(0, 207, 255, 0.5);
+      outline: none;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .search-bar input:focus {
+      box-shadow: 0 0 20px rgba(0, 207, 255, 0.6);
+      border-color: var(--primary);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.3s ease;
+    }
+    
+    .search-bar input:focus ~ .search-icon {
+      color: var(--primary);
+      transform: translateY(-50%) scale(1.1);
+    }
+    
+    .layout {
+      display: flex;
+      padding: 30px 5%;
+      gap: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .sidebar {
+      width: 260px;
+      background: rgba(0, 15, 30, 0.45);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 207, 255, 0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      height: fit-content;
+      position: sticky;
+      top: 120px;
+      animation: slideInLeft 0.8s ease-out 0.4s both;
+    }
+    
+    .sidebar-title {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .sidebar-title h3 {
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 600;
+      display: inline;
+      padding: 0 15px;
+      position: relative;
+    }
+    
+    .sidebar-title h3::before,
+    .sidebar-title h3::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 25px;
+      height: 1px;
+      background: var(--primary);
+    }
+    
+    .sidebar-title h3::before {
+      left: -25px;
+    }
+    
+    .sidebar-title h3::after {
+      right: -25px;
+    }
+    
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .sidebar-section {
+      margin-bottom: 20px;
+    }
+    
+    .sidebar-section h4 {
+      color: var(--primary);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .sidebar-section h4 i {
+      font-size: 0.9rem;
+      color: var(--primary);
+    }
+    
+    .filter-option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+      position: relative;
+      padding-left: 28px;
+      min-height: 20px;
+      font-size: 0.9rem;
+    }
+    
+    .filter-option input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+    
+    .checkmark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 18px;
+      width: 18px;
+      background-color: transparent;
+      border: 2px solid var(--primary);
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .filter-option:hover .checkmark {
+      background-color: rgba(0, 207, 255, 0.1);
+      transform: none;
+    }
+    
+    .filter-option input:checked ~ .checkmark {
+      background-color: rgba(0, 207, 255, 0.2);
+    }
+    
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 5px;
+      top: 2px;
+      width: 5px;
+      height: 10px;
+      border: solid var(--primary);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    
+    .filter-option input:checked ~ .checkmark:after {
+      display: block;
+    }
+    
+    .color-option {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: transform 0.2s ease;
+    }
+    
+    .filter-option:hover .color-option {
+      transform: scale(1.1);
+    }
+    
+    .color-red { background: #ff3e3e; }
+    .color-blue { background: #3e7dff; }
+    .color-black { background: #000000; }
+    .color-purple { background: #9c4dff; }
+    .color-pink { background: #ff4d8d; }
+    .color-green { background: #4dff7d; }
+    
+    .content {
+      flex: 1;
+    }
+    
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+    
+    .product {
+      background: var(--card-bg);
+      border: 1px solid rgba(0, 207, 255, 0.3);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.6s ease forwards;
+      position: relative;
+    }
+    
+    .product-link {
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+    
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .product:hover {
+      transform: translateY(-8px) scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 15px 30px rgba(0, 207, 255, 0.25);
+    }
+    
+    .product:nth-child(1) { animation-delay: 0.2s; }
+    .product:nth-child(2) { animation-delay: 0.3s; }
+    .product:nth-child(3) { animation-delay: 0.4s; }
+    .product:nth-child(4) { animation-delay: 0.5s; }
+    
+    .preview {
+      height: 320px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: transform 0.5s ease;
+    }
+    
+    .product:hover .preview video {
+      transform: scale(1.05);
+    }
+    
+    .product-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      z-index: 2;
+      transform: translateY(-10px);
+      opacity: 0;
+      animation: badgeAppear 0.5s ease 0.8s forwards;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .badge-new {
+      background: var(--badge-new);
+      color: white;
+    }
+    
+    .badge-hit {
+      background: var(--badge-hit);
+      color: #000;
+    }
+    
+    .badge-sale {
+      background: var(--badge-sale);
+      color: #000;
+    }
+    
+    .badge-exclusive {
+      background: var(--badge-exclusive);
+      color: white;
+    }
+    
+    @keyframes badgeAppear {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .product-info {
+      padding: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .product-title {
+      font-size: 1.1rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 10px rgba(0, 207, 255, 0.3);
+    }
+    
+    .product-price {
+      background: linear-gradient(90deg, #00cfff, #3399ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      font-size: 1.3rem;
+      transition: transform 0.3s ease;
+      display: inline-block;
+      padding: 2px 0;
+    }
+    
+    .product-actions {
+      display: flex;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: 'Montserrat', sans-serif;
+      transform: translateY(0);
+    }
+    
+    .action-btn i {
+      transition: transform 0.3s ease;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .action-btn:hover i {
+      transform: scale(1.2);
+    }
+    
+    .details-btn {
+      background: rgba(0, 207, 255, 0.1);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .details-btn:hover {
+      background: var(--primary);
+      color: #000;
+    }
+    
+    .cart-add-btn {
+      background: rgba(0, 207, 255, 0.1);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    
+    .cart-add-btn:hover {
+      background: var(--accent);
+      color: #000;
+    }
+    
+    footer {
+      background: rgba(0, 10, 20, 0.85);
+      padding: 40px 5%;
+      margin-top: 60px;
+      border-top: 1px solid rgba(0, 207, 255, 0.2);
+    }
+    
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+    }
+    
+    .footer-column h3 {
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .footer-column h3::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+    
+    .footer-column:hover h3::after {
+      width: 80px;
+    }
+    
+    .footer-links {
+      list-style: none;
+    }
+    
+    .footer-links li {
+      margin-bottom: 12px;
+      transform: translateX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .footer-links li:hover {
+      transform: translateX(5px);
+    }
+    
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+    
+    .footer-links a i {
+      font-size: 0.8rem;
+      transition: transform 0.3s ease;
+    }
+    
+    .footer-links a:hover i {
+      transform: rotate(15deg);
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .social-link {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 207, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .social-link:hover {
+      background: var(--primary);
+      color: #000;
+      transform: translateY(-3px) scale(1.1);
+      box-shadow: 0 5px 15px rgba(0, 207, 255, 0.3);
+    }
+    
+    .copyright {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.85rem;
+    }
+    
+    @media (max-width: 1024px) {
+      .layout {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        position: static;
+        margin-bottom: 30px;
+      }
+      
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+    }
+    
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 5%;
+        text-align: center;
+      }
+      
+      nav {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+        width: 100%;
+      }
+      
+      .cart-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .sidebar-title h3::before,
+      .sidebar-title h3::after {
+        width: 20px;
+      }
+      
+      .sidebar-title h3::before {
+        left: -20px;
+      }
+      
+      .sidebar-title h3::after {
+        right: -20px;
+      }
+      
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .search-bar input {
+        padding: 12px 20px 12px 40px;
+        font-size: 0.9rem;
+      }
+      
+      .search-icon {
+        left: 15px;
+      }
+      
+      .product-title {
+        font-size: 1rem;
+      }
+      
+      .product-price {
+        font-size: 1.1rem;
+      }
+      
+      .action-btn {
+        font-size: 0.85rem;
+        padding: 6px;
+      }
+    }
+    
+    body:not(.loaded) .layout,
+    body:not(.loaded) header,
+    body:not(.loaded) .search-container,
+    body:not(.loaded) footer {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    body.loaded .layout,
+    body.loaded header,
+    body.loaded .search-container,
+    body.loaded footer {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="preloader">
+    <div class="preloader-content">
+      <div class="spinner">
+        <div class="spinner-sector spinner-sector-blue"></div>
+        <div class="spinner-sector spinner-sector-white"></div>
+      </div>
+      <div class="preloader-logo">
+        <i class="fa-solid fa-paintbrush logo-icon"></i>
+        <span>AeroDesign</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="particles-js"></div>
+  <div class="glow-effect"></div>
+  <div class="glow-effect"></div>
+  
+  <header>
+    <div class="logo">
+      <i class="fa-solid fa-paintbrush logo-icon"></i>
+      <h1>AeroDesign</h1>
+    </div>
+    <nav>
+      <a href="shopru.html" class="active"><i class="fas fa-store"></i> Магазин</a>
+      <a href="zakazru.html"><i class="fas fa-pencil-ruler"></i> Заказать оформление</a>
+      <a href="supportru.html"><i class="fas fa-question-circle"></i> Помощь</a>
+      <a href="korzinaru.html" class="cart-btn">
+        <i class="fas fa-shopping-cart"></i>
+        Корзина <span class="cart-count">2</span>
+      </a>
+    </nav>
+  </header>
+
+  <div class="search-container">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" placeholder="Поиск персонажей...">
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">
+        <h3>Фильтры</h3>
+      </div>
+      
+      <div class="sidebar-section">
+        <h4><i class="fas fa-star"></i> Выбор витрины</h4>
+        <label class="filter-option">
+          <input type="checkbox" id="featured-type">
+          <span class="checkmark"></span>
+          Витрина избранных
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="artwork">
+          <span class="checkmark"></span>
+          Витрина иллюстраций
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="workshop">
+          <span class="checkmark"></span>
+          Витрина мастерской
+        </label>
+      </div>
+      
+      <div class="sidebar-section">
+        <h4><i class="fas fa-palette"></i> Цвет профиля</h4>
+        <label class="filter-option">
+          <input type="checkbox" id="red">
+          <span class="checkmark"></span>
+          <span class="color-option color-red"></span>Красный
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="blue">
+          <span class="checkmark"></span>
+          <span class="color-option color-blue"></span>Синий
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="black">
+          <span class="checkmark"></span>
+          <span class="color-option color-black"></span>Черный
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="purple">
+          <span class="checkmark"></span>
+          <span class="color-option color-purple"></span>Фиолетовый
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="pink">
+          <span class="checkmark"></span>
+          <span class="color-option color-pink"></span>Розовый
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="green">
+          <span class="checkmark"></span>
+          <span class="color-option color-green"></span>Зелёный
+        </label>
+      </div>
+      
+      <div class="sidebar-section">
+        <h4><i class="fas fa-gamepad"></i> Тематика</h4>
+        <label class="filter-option">
+          <input type="checkbox" id="anime">
+          <span class="checkmark"></span>
+          Аниме
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="not-anime">
+          <span class="checkmark"></span>
+          Не аниме
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" id="free">
+          <span class="checkmark"></span>
+          Бесплатные
+        </label>
+      </div>
+    </aside>
+    
+    <main class="content">
+      <div class="gallery">
+        <div class="product" data-id="1">
+          <a href="productru.html?id=1" class="product-link">
+            <div class="preview">
+              <video autoplay loop muted playsinline poster="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Cyber+Neon">
+                <source src="assets/videos/cyber-neon.mp4" type="video/mp4">
+                <img src="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Cyber+Neon" alt="Cyber Neon">
+              </video>
+              <span class="product-badge badge-hit">Хит</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Cyber Neon</h3>
+              <div class="product-meta">
+                <div class="product-price">8 €</div>
+              </div>
+            </div>
+          </a>
+          <div class="product-actions">
+            <button class="action-btn details-btn">
+              <i class="fas fa-eye"></i> Подробнее
+            </button>
+            <button class="action-btn cart-add-btn">
+              <i class="fas fa-cart-plus"></i> В корзину
+            </button>
+          </div>
+        </div>
+        
+        <div class="product" data-id="2">
+          <a href="productru.html?id=2" class="product-link">
+            <div class="preview">
+              <video autoplay loop muted playsinline poster="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Anime+Dream">
+                <source src="assets/videos/anime-dream.mp4" type="video/mp4">
+                <img src="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Anime+Dream" alt="Anime Dream">
+              </video>
+              <span class="product-badge badge-new">Новинка</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Anime Dream</h3>
+              <div class="product-meta">
+                <div class="product-price">6 €</div>
+              </div>
+            </div>
+          </a>
+          <div class="product-actions">
+            <button class="action-btn details-btn">
+              <i class="fas fa-eye"></i> Подробнее
+            </button>
+            <button class="action-btn cart-add-btn">
+              <i class="fas fa-cart-plus"></i> В корзину
+            </button>
+          </div>
+        </div>
+        
+        <div class="product" data-id="3">
+          <a href="productru.html?id=3" class="product-link">
+            <div class="preview">
+              <video autoplay loop muted playsinline poster="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Cyberpunk+2077">
+                <source src="assets/videos/cyberpunk-2077.mp4" type="video/mp4">
+                <img src="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Cyberpunk+2077" alt="Cyberpunk 2077">
+              </video>
+              <span class="product-badge badge-sale">Скидка 20%</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Cyberpunk 2077</h3>
+              <div class="product-meta">
+                <div class="product-price">10 €</div>
+              </div>
+            </div>
+          </a>
+          <div class="product-actions">
+            <button class="action-btn details-btn">
+              <i class="fas fa-eye"></i> Подробнее
+            </button>
+            <button class="action-btn cart-add-btn">
+              <i class="fas fa-cart-plus"></i> В корзину
+            </button>
+          </div>
+        </div>
+        
+        <div class="product" data-id="4">
+          <a href="productru.html?id=4" class="product-link">
+            <div class="preview">
+              <video autoplay loop muted playsinline poster="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Exclusive+Showcase">
+                <source src="assets/videos/exclusive-showcase.mp4" type="video/mp4">
+                <img src="https://via.placeholder.com/400x600/0a1e30/00cfff?text=Exclusive+Showcase" alt="Exclusive Showcase">
+              </video>
+              <span class="product-badge badge-exclusive">Эксклюзив</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">Exclusive Showcase</h3>
+              <div class="product-meta">
+                <div class="product-price">15 €</div>
+              </div>
+            </div>
+          </a>
+          <div class="product-actions">
+            <button class="action-btn details-btn">
+              <i class="fas fa-eye"></i> Подробнее
+            </button>
+            <button class="action-btn cart-add-btn">
+              <i class="fas fa-cart-plus"></i> В корзину
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <footer>
+    <div class="footer-content">
+      <div class="footer-column">
+        <h3>AeroDesign</h3>
+        <p style="color: rgba(255,255,255,0.7); line-height: 1.6; margin-bottom: 20px;">
+          Создаем уникальные витрины для Steam с 2021 года.
+        </p>
+        <div class="social-links">
+          <a href="https://t.me/OFFRLINE" target="_blank" class="social-link"><i class="fab fa-telegram"></i></a>
+          <a href="https://discord.gg/2GCebZRavP" target="_blank" class="social-link"><i class="fab fa-discord"></i></a>
+          <a href="https://www.deviantart.com/aeroidesign" target="_blank" class="social-link"><i class="fab fa-deviantart"></i></a>
+        </div>
+      </div>
+      
+      <div class="footer-column">
+        <h3>Меню</h3>
+        <ul class="footer-links">
+          <li><a href="shopru.html"><i class="fas fa-chevron-right"></i> Магазин</a></li>
+          <li><a href="zakazru.html"><i class="fas fa-chevron-right"></i> Заказать оформление</a></li>
+          <li><a href="supportru.html"><i class="fas fa-chevron-right"></i> Помощь</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h3>Категории</h3>
+        <ul class="footer-links">
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Избранные</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Иллюстрации</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Мастерская</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h3>Контакты</h3>
+        <ul class="footer-links">
+          <li><a href="https://t.me/OFFRLINE" target="_blank"><i class="fab fa-telegram"></i> Telegram</a></li>
+          <li><a href="https://discord.gg/2GCebZRavP" target="_blank"><i class="fab fa-discord"></i> Discord</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      &copy; 2025 AeroDesign. Все права защищены.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        window.addEventListener('load', function() {
+          document.body.classList.add('content-loaded');
+        });
+        
+        setTimeout(function() {
+          document.body.classList.add('content-loaded');
+        }, 3000);
+      }, 1000);
+      
+      particlesJS('particles-js', {
+        "particles": {
+          "number": {
+            "value": 80,
+            "density": {
+              "enable": true,
+              "value_area": 800
+            }
+          },
+          "color": {
+            "value": ["#00cfff", "#ffffff", "#3399ff"]
+          },
+          "shape": {
+            "type": "circle",
+            "stroke": {
+              "width": 0,
+              "color": "#000000"
+            },
+            "polygon": {
+              "nb_sides": 5
+            }
+          },
+          "opacity": {
+            "value": 0.5,
+            "random": true,
+            "anim": {
+              "enable": true,
+              "speed": 1,
+              "opacity_min": 0.1,
+              "sync": false
+            }
+          },
+          "size": {
+            "value": 3,
+            "random": true,
+            "anim": {
+              "enable": true,
+              "speed": 2,
+              "size_min": 0.1,
+              "sync": false
+            }
+          },
+          "line_linked": {
+            "enable": true,
+            "distance": 150,
+            "color": "#00cfff",
+            "opacity": 0.2,
+            "width": 1
+          },
+          "move": {
+            "enable": true,
+            "speed": 1.5,
+            "direction": "none",
+            "random": true,
+            "straight": false,
+            "out_mode": "out",
+            "bounce": false,
+            "attract": {
+              "enable": true,
+              "rotateX": 600,
+              "rotateY": 1200
+            }
+          }
+        },
+        "interactivity": {
+          "detect_on": "canvas",
+          "events": {
+            "onhover": {
+              "enable": true,
+              "mode": "grab"
+            },
+            "onclick": {
+              "enable": true,
+              "mode": "push"
+            },
+            "resize": true
+          },
+          "modes": {
+            "grab": {
+              "distance": 140,
+              "line_linked": {
+                "opacity": 0.5
+              }
+            },
+            "bubble": {
+              "distance": 400,
+              "size": 40,
+              "duration": 2,
+              "opacity": 8,
+              "speed": 3
+            },
+            "repulse": {
+              "distance": 200,
+              "duration": 0.4
+            },
+            "push": {
+              "particles_nb": 4
+            },
+            "remove": {
+              "particles_nb": 2
+            }
+          }
+        },
+        "retina_detect": true
+      });
+
+      document.querySelectorAll('.details-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          const productCard = this.closest('.product');
+          const productLink = productCard.querySelector('.product-link');
+          if (productLink) {
+            window.location.href = productLink.href;
+          }
+        });
+      });
+    });
+    
+    const MIN_PRELOAD_TIME = 1000; 
+    const startTime = Date.now();
+
+    window.addEventListener('load', () => {
+      const elapsed = Date.now() - startTime;
+      const remaining = MIN_PRELOAD_TIME - elapsed;
+
+      setTimeout(() => {
+        document.body.classList.add('loaded'); 
+        const preloader = document.querySelector('.preloader');
+        if (preloader) preloader.remove();
+      }, remaining > 0 ? remaining : 0);
+    });
+  </script>
+</body>
+</html>
