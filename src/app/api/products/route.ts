@@ -30,7 +30,15 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(products)
+    const origin = request.nextUrl.origin
+    const withAbsolute = products.map((p: any) => ({
+      ...p,
+      video: typeof p.video === 'string' && !p.video.startsWith('http')
+        ? `${origin}${p.video.startsWith('/') ? '' : '/'}${p.video}`
+        : p.video,
+    }))
+
+    return NextResponse.json(withAbsolute)
   } catch (error) {
     console.error('Error fetching products:', error)
     return NextResponse.json(
@@ -44,7 +52,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, price, video, badge } = body
+    const { title, price, video, badge, showcase, profileColor, theme } = body
 
     if (!title || !price || !video) {
       return NextResponse.json(
@@ -58,7 +66,10 @@ export async function POST(request: NextRequest) {
         title,
         price: parseFloat(price),
         video,
-        badge: badge || null
+        badge: badge || null,
+        showcase: showcase ?? undefined,
+        profileColor: profileColor ?? undefined,
+        theme: theme ?? undefined,
       }
     })
 

@@ -179,9 +179,39 @@ export default function AdminProductsPage() {
             {form.video && <span className="neon-badge">GIF ready</span>}
           </div>
           <Input placeholder="Badge" value={form.badge} onChange={e=>setForm(f=>({...f,badge:e.target.value}))} />
-          <Input placeholder="Showcase" value={form.showcase} onChange={e=>setForm(f=>({...f,showcase:e.target.value}))} />
-          <Input placeholder="Profile Color" value={form.profileColor} onChange={e=>setForm(f=>({...f,profileColor:e.target.value}))} />
-          <Input placeholder="Theme" value={form.theme} onChange={e=>setForm(f=>({...f,theme:e.target.value}))} />
+          <select
+            className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
+            value={form.showcase}
+            onChange={e=>setForm(f=>({...f,showcase:e.target.value}))}
+          >
+            <option value="" disabled>Choose showcase</option>
+            <option value="main">main</option>
+            <option value="artwork">artwork</option>
+            <option value="workshop">workshop</option>
+          </select>
+          <select
+            className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
+            value={form.profileColor}
+            onChange={e=>setForm(f=>({...f,profileColor:e.target.value}))}
+          >
+            <option value="" disabled>Choose profile color</option>
+            <option value="red">red</option>
+            <option value="blue">blue</option>
+            <option value="black">black</option>
+            <option value="purple">purple</option>
+            <option value="pink">pink</option>
+            <option value="green">green</option>
+          </select>
+          <select
+            className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
+            value={form.theme}
+            onChange={e=>setForm(f=>({...f,theme:e.target.value}))}
+          >
+            <option value="" disabled>Choose theme</option>
+            <option value="anime">anime</option>
+            <option value="not-anime">not-anime</option>
+            <option value="free">free</option>
+          </select>
           <div>
             <Button onClick={onCreate} disabled={uploading}>{uploading ? 'Uploading...' : 'Create'}</Button>
           </div>
@@ -249,9 +279,39 @@ export default function AdminProductsPage() {
             {editForm.video && <span className="neon-badge">GIF ready</span>}
           </div>
           <Input placeholder="Badge" value={editForm.badge} onChange={e=>setEditForm(f=>({...f,badge:e.target.value}))} />
-          <Input placeholder="Showcase" value={editForm.showcase} onChange={e=>setEditForm(f=>({...f,showcase:e.target.value}))} />
-          <Input placeholder="Profile Color" value={editForm.profileColor} onChange={e=>setEditForm(f=>({...f,profileColor:e.target.value}))} />
-          <Input placeholder="Theme" value={editForm.theme} onChange={e=>setEditForm(f=>({...f,theme:e.target.value}))} />
+          <select
+            className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
+            value={editForm.showcase}
+            onChange={e=>setEditForm(f=>({...f,showcase:e.target.value}))}
+          >
+            <option value="" disabled>Choose showcase</option>
+            <option value="main">main</option>
+            <option value="artwork">artwork</option>
+            <option value="workshop">workshop</option>
+          </select>
+          <select
+            className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
+            value={editForm.profileColor}
+            onChange={e=>setEditForm(f=>({...f,profileColor:e.target.value}))}
+          >
+            <option value="" disabled>Choose profile color</option>
+            <option value="red">red</option>
+            <option value="blue">blue</option>
+            <option value="black">black</option>
+            <option value="purple">purple</option>
+            <option value="pink">pink</option>
+            <option value="green">green</option>
+          </select>
+          <select
+            className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
+            value={editForm.theme}
+            onChange={e=>setEditForm(f=>({...f,theme:e.target.value}))}
+          >
+            <option value="" disabled>Choose theme</option>
+            <option value="anime">anime</option>
+            <option value="not-anime">not-anime</option>
+            <option value="free">free</option>
+          </select>
         </div>
         <div className="flex gap-3 justify-end mt-4">
           <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
