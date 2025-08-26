@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from 'next/server'
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+import { prisma } from '@/lib/prisma'
+
+// GET /api/products - получить продукты с фильтрами
+export async function GET(request: NextRequest) {
+  try {
+    const params = request.nextUrl.searchParams
+    const parseMulti = (key: string): string[] => {
+      const values = params.getAll(key)
+      if (values.length === 0) return []
+      return values.flatMap(v => v.split(',')).map(v => v.trim()).filter(Boolean)
+    }
+
+    const showcaseValues = parseMulti('showcase')
+    const profileColorValues = parseMulti('profileColor')
+    const themeValues = parseMulti('theme')
+
+    const where: Record<string, any> = {}
+    if (showcaseValues.length) where.showcase = { in: showcaseValues }
+    if (profileColorValues.length) where.profileColor = { in: profileColorValues }
+    if (themeValues.length) where.theme = { in: themeValues }
+
+    const products = await prisma.product.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    return NextResponse.json(products)
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch products' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST /api/products - создать новый продукт
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { title, price, video, badge } = body
+
+    if (!title || !price || !video) {
+      return NextResponse.json(
+        { error: 'Title, price, and video are required' },
+        { status: 400 }
+      )
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        title,
+        price: parseFloat(price),
+        video,
+        badge: badge || null
+      }
+    })
+
+    return NextResponse.json(product, { status: 201 })
+  } catch (error) {
+    console.error('Error creating product:', error)
+    return NextResponse.json(
+      { error: 'Failed to create product' },
+      { status: 500 }
+    )
+  }
+}
+
