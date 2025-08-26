@@ -37,7 +37,7 @@ body {
 
 /* Neon helpers for admin */
 .neon-card {
-  background: var(--card);
+  background: rgba(12,22,44,0.6);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   box-shadow:

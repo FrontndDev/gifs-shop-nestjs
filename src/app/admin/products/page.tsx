@@ -24,6 +24,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   const [form, setForm] = useState({
     title: '',
@@ -46,6 +47,7 @@ export default function AdminProductsPage() {
     profileColor: '',
     theme: '',
   })
+  const [editUploading, setEditUploading] = useState(false)
 
   const fetchProducts = async () => {
     setLoading(true)
@@ -62,6 +64,15 @@ export default function AdminProductsPage() {
   }
 
   useEffect(() => { fetchProducts() }, [])
+
+  const uploadGif = async (file: File): Promise<string> => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd })
+    if (!res.ok) throw new Error('Upload failed')
+    const data = await res.json()
+    return data.url as string
+  }
 
   const onCreate = async () => {
     setError(null)
@@ -148,13 +159,31 @@ export default function AdminProductsPage() {
         <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
           <Input placeholder="Title" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} />
           <Input placeholder="Price" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} />
-          <Input placeholder="Video URL" value={form.video} onChange={e=>setForm(f=>({...f,video:e.target.value}))} />
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              accept="image/gif"
+              className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-1.5 text-sm text-white"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                try {
+                  setUploading(true)
+                  const url = await uploadGif(file)
+                  setForm(f => ({ ...f, video: url }))
+                } catch (e: any) {
+                  setError(e?.message || 'Upload error')
+                } finally { setUploading(false) }
+              }}
+            />
+            {form.video && <span className="neon-badge">GIF ready</span>}
+          </div>
           <Input placeholder="Badge" value={form.badge} onChange={e=>setForm(f=>({...f,badge:e.target.value}))} />
           <Input placeholder="Showcase" value={form.showcase} onChange={e=>setForm(f=>({...f,showcase:e.target.value}))} />
           <Input placeholder="Profile Color" value={form.profileColor} onChange={e=>setForm(f=>({...f,profileColor:e.target.value}))} />
           <Input placeholder="Theme" value={form.theme} onChange={e=>setForm(f=>({...f,theme:e.target.value}))} />
           <div>
-            <Button onClick={onCreate}>Create</Button>
+            <Button onClick={onCreate} disabled={uploading}>{uploading ? 'Uploading...' : 'Create'}</Button>
           </div>
         </div>
       </Card>
@@ -200,7 +229,25 @@ export default function AdminProductsPage() {
         <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
           <Input placeholder="Title" value={editForm.title} onChange={e=>setEditForm(f=>({...f,title:e.target.value}))} />
           <Input placeholder="Price" value={editForm.price} onChange={e=>setEditForm(f=>({...f,price:e.target.value}))} />
-          <Input className="md:col-span-2" placeholder="Video URL" value={editForm.video} onChange={e=>setEditForm(f=>({...f,video:e.target.value}))} />
+          <div className="md:col-span-2 flex items-center gap-3">
+            <input
+              type="file"
+              accept="image/gif"
+              className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-1.5 text-sm text-white"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                try {
+                  setEditUploading(true)
+                  const url = await uploadGif(file)
+                  setEditForm(f => ({ ...f, video: url }))
+                } catch (e: any) {
+                  setError(e?.message || 'Upload error')
+                } finally { setEditUploading(false) }
+              }}
+            />
+            {editForm.video && <span className="neon-badge">GIF ready</span>}
+          </div>
           <Input placeholder="Badge" value={editForm.badge} onChange={e=>setEditForm(f=>({...f,badge:e.target.value}))} />
           <Input placeholder="Showcase" value={editForm.showcase} onChange={e=>setEditForm(f=>({...f,showcase:e.target.value}))} />
           <Input placeholder="Profile Color" value={editForm.profileColor} onChange={e=>setEditForm(f=>({...f,profileColor:e.target.value}))} />
@@ -208,7 +255,7 @@ export default function AdminProductsPage() {
         </div>
         <div className="flex gap-3 justify-end mt-4">
           <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={saveEdit}>Save</Button>
+          <Button onClick={saveEdit} disabled={editUploading}>{editUploading ? 'Uploading...' : 'Save'}</Button>
         </div>
       </Modal>
     </div>
