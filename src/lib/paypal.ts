@@ -22,15 +22,15 @@ export async function getPayPalAccessToken(): Promise<string> {
     // eslint-disable-next-line no-restricted-syntax
     body: new URLSearchParams({ grant_type: 'client_credentials' }),
   })
-  const data = await res.json().catch(() => ({} as any))
+  const data: unknown = await res.json().catch(() => ({}))
   if (!res.ok) {
     throw new Error(`PayPal token error: ${res.status} ${JSON.stringify(data)}`)
   }
-  return (data as any).access_token as string
+  return (data as { access_token: string }).access_token
 }
 
 export async function verifyPayPalWebhookSignature(args: {
-  body: any
+  body: unknown
   transmissionId: string | null
   transmissionTime: string | null
   certUrl: string | null
@@ -58,8 +58,8 @@ export async function verifyPayPalWebhookSignature(args: {
     },
     body: JSON.stringify(payload),
   })
-  const data = await res.json().catch(() => ({} as any))
-  return (data as any)?.verification_status === 'SUCCESS'
+  const data: unknown = await res.json().catch(() => ({}))
+  return (data as { verification_status?: string }).verification_status === 'SUCCESS'
 }
 
 

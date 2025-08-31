@@ -44,8 +44,8 @@ export default function AdminOrdersPage() {
       const res = await fetch(`${API}/api/orders`)
       const data = await res.json()
       setOrders(data)
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
       setLoading(false)
     }
@@ -62,8 +62,8 @@ export default function AdminOrdersPage() {
       })
       if (!res.ok) throw new Error('Failed to update')
       fetchOrders()
-    } catch (e: any) {
-      setError(e?.message || 'Update error')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Update error')
     }
   }
 
@@ -72,8 +72,8 @@ export default function AdminOrdersPage() {
       const res = await fetch(`${API}/api/orders/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
       setOrders(prev => prev.filter(o => o.id !== id))
-    } catch (e: any) {
-      setError(e?.message || 'Delete error')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Delete error')
     }
   }
 
@@ -112,8 +112,8 @@ export default function AdminOrdersPage() {
       setEditOpen(false)
       setEditing(null)
       fetchOrders()
-    } catch (e: any) {
-      setError(e?.message || 'Update error')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Update error')
     }
   }
 

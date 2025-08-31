@@ -6,12 +6,13 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const accessToken = await getPayPalAccessToken()
     const base = getPayPalBaseUrl()
-    const res = await fetch(`${base}/v2/checkout/orders/${params.id}/capture`, {
+    const res = await fetch(`${base}/v2/checkout/orders/${id}/capture`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,

@@ -56,8 +56,8 @@ export default function AdminProductsPage() {
       const res = await fetch(`${API}/api/products`)
       const data = await res.json()
       setProducts(data)
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
       setLoading(false)
     }
@@ -93,8 +93,8 @@ export default function AdminProductsPage() {
       if (!res.ok) throw new Error('Failed to create')
       setForm({ title: '', price: '', video: '', badge: '', showcase: '', profileColor: '', theme: '' })
       fetchProducts()
-    } catch (e: any) {
-      setError(e?.message || 'Create error')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Create error')
     }
   }
 
@@ -103,8 +103,8 @@ export default function AdminProductsPage() {
       const res = await fetch(`${API}/api/products/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
       setProducts(prev => prev.filter(p => p.id !== id))
-    } catch (e: any) {
-      setError(e?.message || 'Delete error')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Delete error')
     }
   }
 
@@ -143,8 +143,8 @@ export default function AdminProductsPage() {
       setEditOpen(false)
       setEditing(null)
       fetchProducts()
-    } catch (e: any) {
-      setError(e?.message || 'Update error')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Update error')
     }
   }
 
@@ -171,8 +171,8 @@ export default function AdminProductsPage() {
                   setUploading(true)
                   const url = await uploadGif(file)
                   setForm(f => ({ ...f, video: url }))
-                } catch (e: any) {
-                  setError(e?.message || 'Upload error')
+                } catch (e: unknown) {
+                  setError(e instanceof Error ? e.message : 'Upload error')
                 } finally { setUploading(false) }
               }}
             />
@@ -271,8 +271,8 @@ export default function AdminProductsPage() {
                   setEditUploading(true)
                   const url = await uploadGif(file)
                   setEditForm(f => ({ ...f, video: url }))
-                } catch (e: any) {
-                  setError(e?.message || 'Upload error')
+                } catch (e: unknown) {
+                  setError(e instanceof Error ? e.message : 'Upload error')
                 } finally { setEditUploading(false) }
               }}
             />

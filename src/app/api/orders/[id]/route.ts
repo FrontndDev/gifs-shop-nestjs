@@ -4,12 +4,13 @@ import { prisma } from '@/lib/prisma'
 // GET /api/orders/[id] - получить заказ по ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const order = await prisma.order.findUnique({
       where: {
-        id: params.id
+        id
       }
     })
 
@@ -33,9 +34,10 @@ export async function GET(
 // PUT /api/orders/[id] - обновить заказ
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     const body = await request.json()
     const { 
       name, 
@@ -49,7 +51,7 @@ export async function PUT(
 
     const order = await prisma.order.update({
       where: {
-        id: params.id
+        id
       },
       data: {
         name,
@@ -75,12 +77,13 @@ export async function PUT(
 // DELETE /api/orders/[id] - удалить заказ
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
     await prisma.order.delete({
       where: {
-        id: params.id
+        id
       }
     })
 

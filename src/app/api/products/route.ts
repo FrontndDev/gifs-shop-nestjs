@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const profileColorValues = parseMulti('profileColor')
     const themeValues = parseMulti('theme')
 
-    const where: Record<string, any> = {}
+    const where: Record<string, unknown> = {}
     if (showcaseValues.length) where.showcase = { in: showcaseValues }
     if (profileColorValues.length) where.profileColor = { in: profileColorValues }
     if (themeValues.length) where.theme = { in: themeValues }
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     })
 
     const origin = request.nextUrl.origin
-    const withAbsolute = products.map((p: any) => ({
+    const withAbsolute = products.map((p) => ({
       ...p,
       video: typeof p.video === 'string' && !p.video.startsWith('http')
         ? `${origin}${p.video.startsWith('/') ? '' : '/'}${p.video}`
