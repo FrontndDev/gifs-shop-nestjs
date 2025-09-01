@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
     await fs.writeFile(filePath, buffer)
 
     const url = `/uploads/${filename}`
-    const absoluteUrl = `${request.nextUrl.origin}${url}`
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const effectiveOrigin = forwardedHost
+      ? `${forwardedProto || 'https'}://${forwardedHost}`
+      : request.nextUrl.origin
+    const absoluteUrl = `${effectiveOrigin}${url}`
     return NextResponse.json({ url, absoluteUrl }, { status: 201 })
   } catch (error) {
     console.error('Upload error:', error)

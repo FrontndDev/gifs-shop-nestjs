@@ -30,12 +30,23 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const origin = request.nextUrl.origin
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const effectiveOrigin = forwardedHost
+      ? `${forwardedProto || 'https'}://${forwardedHost}`
+      : request.nextUrl.origin
+
+    const normalizeUrl = (value: unknown): unknown => {
+      if (typeof value !== 'string') return value
+      if (value.startsWith('http')) return value
+      const base = effectiveOrigin.replace(/\/$/, '')
+      const path = value.startsWith('/') ? value : `/${value}`
+      return `${base}${path}`
+    }
+
     const withAbsolute = products.map((p) => ({
       ...p,
-      video: typeof p.video === 'string' && !p.video.startsWith('http')
-        ? `${origin}${p.video.startsWith('/') ? '' : '/'}${p.video}`
-        : p.video,
+      video: normalizeUrl(p.video) as string,
     }))
 
     return NextResponse.json(withAbsolute)
@@ -73,7 +84,26 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(product, { status: 201 })
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const effectiveOrigin = forwardedHost
+      ? `${forwardedProto || 'https'}://${forwardedHost}`
+      : request.nextUrl.origin
+
+    const normalizeUrl = (value: unknown): unknown => {
+      if (typeof value !== 'string') return value
+      if (value.startsWith('http')) return value
+      const base = effectiveOrigin.replace(/\/$/, '')
+      const path = value.startsWith('/') ? value : `/${value}`
+      return `${base}${path}`
+    }
+
+    const withAbsolute = {
+      ...product,
+      video: normalizeUrl(product.video) as string,
+    }
+
+    return NextResponse.json(withAbsolute, { status: 201 })
   } catch (error) {
     console.error('Error creating product:', error)
     return NextResponse.json(

@@ -21,7 +21,26 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(product)
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const effectiveOrigin = forwardedHost
+      ? `${forwardedProto || 'https'}://${forwardedHost}`
+      : request.nextUrl.origin
+
+    const normalizeUrl = (value: unknown): unknown => {
+      if (typeof value !== 'string') return value
+      if (value.startsWith('http')) return value
+      const base = effectiveOrigin.replace(/\/$/, '')
+      const path = value.startsWith('/') ? value : `/${value}`
+      return `${base}${path}`
+    }
+
+    const withAbsolute = {
+      ...product,
+      video: normalizeUrl(product.video) as string,
+    }
+
+    return NextResponse.json(withAbsolute)
   } catch (error) {
     console.error('Error fetching product:', error)
     return NextResponse.json(
