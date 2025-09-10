@@ -55,7 +55,9 @@ export async function GET(
     // data should be a payment object
     const status = (data?.status as string | undefined) || 'unknown'
     const metadata = (data?.metadata as Record<string, unknown> | undefined) || undefined
-    const orderId = (metadata?.orderId as string | undefined) || (metadata?.order_id as string | undefined)
+    const url = new URL(request.url)
+    const fallbackOrderId = url.searchParams.get('orderId') || undefined
+    const orderId = (metadata?.orderId as string | undefined) || (metadata?.order_id as string | undefined) || fallbackOrderId
 
     if (orderId && (status === 'succeeded' || status === 'captured' || status === 'waiting_for_capture')) {
       await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } }).catch(() => undefined)

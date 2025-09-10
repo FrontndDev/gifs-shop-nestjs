@@ -18,6 +18,17 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as CreatePaymentRequest
     const amountValue = typeof body.amount === 'string' ? body.amount : Number(body.amount).toFixed(2)
 
+    // Require existing order in DB (recommended flow)
+    const metadata = (body.metadata || {}) as Record<string, unknown>
+    const orderId = (metadata.orderId as string | undefined) || (metadata.order_id as string | undefined)
+    if (!orderId) {
+      return NextResponse.json({ error: 'metadata.orderId is required' }, { status: 400 })
+    }
+    const existingOrder = await prisma.order.findUnique({ where: { id: orderId } })
+    if (!existingOrder) {
+      return NextResponse.json({ error: 'Order not found. Create order first via POST /api/orders.' }, { status: 400 })
+    }
+
     // Test mode: instant success without external call
     const isInstantSuccess = process.env.YOOKASSA_TEST_MODE === '1' || process.env.YOOKASSA_TEST_INSTANT_SUCCESS === '1'
     if (isInstantSuccess) {
@@ -28,14 +39,11 @@ export async function POST(request: NextRequest) {
         amount: { value: amountValue, currency: body.currency || 'RUB' },
         confirmation: { type: 'redirect', return_url: body.returnUrl },
         description: body.description || undefined,
-        metadata: body.metadata || undefined,
+        metadata: { ...metadata },
         test: true,
       }
 
-      const orderId = (body.metadata?.orderId as string | undefined) || (body.metadata?.order_id as string | undefined)
-      if (orderId) {
-        await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } }).catch(() => undefined)
-      }
+      await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } }).catch(() => undefined)
 
       return NextResponse.json(payment, { status: 201 })
     }
@@ -66,7 +74,7 @@ export async function POST(request: NextRequest) {
         return_url: body.returnUrl,
       },
       description: body.description || undefined,
-      metadata: body.metadata || undefined,
+      metadata: { ...metadata },
     }
 
     const res = await fetch('https://api.yookassa.ru/v3/payments', {
