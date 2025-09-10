@@ -35,10 +35,12 @@ export async function GET(
       return `${base}${path}`
     }
 
+    // Hide original by default
     const withAbsolute = {
       ...product,
       video: normalizeUrl(product.video) as string,
-    }
+    } as Record<string, unknown>
+    delete withAbsolute.original
 
     return NextResponse.json(withAbsolute)
   } catch (error) {
@@ -58,7 +60,7 @@ export async function PUT(
   try {
     const { id } = await context.params
     const body = await request.json()
-    const { title, price, video, badge, showcase, profileColor, theme } = body
+    const { title, price, video, badge, showcase, profileColor, theme, original } = body
 
     const product = await prisma.product.update({
       where: {
@@ -71,7 +73,8 @@ export async function PUT(
         badge,
         showcase,
         profileColor,
-        theme
+        theme,
+        original
       }
     })
 

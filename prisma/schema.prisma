@@ -15,6 +15,7 @@ model Product {
   title     String
   price     Float
   video     String   // путь к gif/видео файлу
+  original  String?  // приватная ссылка, доступна только после оплаты
   badge     String?  // опциональный бейдж (Хит продаж, Новинка, etc.)
   showcase      String?
   profileColor  String?

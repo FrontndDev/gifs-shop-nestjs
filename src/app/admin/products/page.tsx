@@ -14,6 +14,7 @@ type Product = {
   showcase?: string | null
   profileColor?: string | null
   theme?: string | null
+  original?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -34,6 +35,7 @@ export default function AdminProductsPage() {
     showcase: '',
     profileColor: '',
     theme: '',
+    original: '',
   })
 
   const [editOpen, setEditOpen] = useState(false)
@@ -46,6 +48,7 @@ export default function AdminProductsPage() {
     showcase: '',
     profileColor: '',
     theme: '',
+    original: '',
   })
   const [editUploading, setEditUploading] = useState(false)
 
@@ -88,10 +91,11 @@ export default function AdminProductsPage() {
           showcase: form.showcase || undefined,
           profileColor: form.profileColor || undefined,
           theme: form.theme || undefined,
+          original: form.original || undefined,
         })
       })
       if (!res.ok) throw new Error('Failed to create')
-      setForm({ title: '', price: '', video: '', badge: '', showcase: '', profileColor: '', theme: '' })
+      setForm({ title: '', price: '', video: '', badge: '', showcase: '', profileColor: '', theme: '', original: '' })
       fetchProducts()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Create error')
@@ -118,6 +122,7 @@ export default function AdminProductsPage() {
       showcase: p.showcase || '',
       profileColor: p.profileColor || '',
       theme: p.theme || '',
+      original: p.original || '',
     })
     setEditOpen(true)
   }
@@ -137,6 +142,7 @@ export default function AdminProductsPage() {
           showcase: editForm.showcase || undefined,
           profileColor: editForm.profileColor || undefined,
           theme: editForm.theme || undefined,
+          original: editForm.original || undefined,
         })
       })
       if (!res.ok) throw new Error('Failed to update')
@@ -179,6 +185,7 @@ export default function AdminProductsPage() {
             {form.video && <span className="neon-badge">GIF ready</span>}
           </div>
           <Input placeholder="Badge" value={form.badge} onChange={e=>setForm(f=>({...f,badge:e.target.value}))} />
+          <Input placeholder="Original link (private)" value={form.original} onChange={e=>setForm(f=>({...f,original:e.target.value}))} />
           <select
             className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
             value={form.showcase}
@@ -279,6 +286,7 @@ export default function AdminProductsPage() {
             {editForm.video && <span className="neon-badge">GIF ready</span>}
           </div>
           <Input placeholder="Badge" value={editForm.badge} onChange={e=>setEditForm(f=>({...f,badge:e.target.value}))} />
+          <Input placeholder="Original link (private)" value={editForm.original} onChange={e=>setEditForm(f=>({...f,original:e.target.value}))} />
           <select
             className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
             value={editForm.showcase}

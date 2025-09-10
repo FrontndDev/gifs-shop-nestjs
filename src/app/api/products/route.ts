@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, price, video, badge, showcase, profileColor, theme } = body
+    const { title, price, video, badge, showcase, profileColor, theme, original } = body
 
     if (!title || !price || !video) {
       return NextResponse.json(
@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         showcase: showcase ?? undefined,
         profileColor: profileColor ?? undefined,
         theme: theme ?? undefined,
+        original: original ?? undefined,
       }
     })
 
