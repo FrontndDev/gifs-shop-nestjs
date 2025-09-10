@@ -35,9 +35,19 @@ export async function GET(
     if (order.status === 'paid') {
       let productIds: string[] = []
       try {
-        const details = typeof order.details === 'string' ? JSON.parse(order.details) : order.details
-        const items = Array.isArray(details?.items) ? details.items : []
-        productIds = items.map((it: any) => String(it?.id)).filter(Boolean)
+        const detailsRaw: unknown = typeof order.details === 'string' ? JSON.parse(order.details) : order.details
+        const detailsObj = (detailsRaw && typeof detailsRaw === 'object') ? (detailsRaw as Record<string, unknown>) : undefined
+        const itemsUnknown = detailsObj?.items
+        const items = Array.isArray(itemsUnknown) ? itemsUnknown as Array<unknown> : []
+        productIds = items
+          .map((item) => {
+            const obj = (item && typeof item === 'object') ? (item as Record<string, unknown>) : undefined
+            const val = obj?.id
+            if (typeof val === 'string') return val
+            if (typeof val === 'number' || typeof val === 'boolean') return String(val)
+            return ''
+          })
+          .filter((v): v is string => Boolean(v))
       } catch {
         // ignore parse errors
       }
