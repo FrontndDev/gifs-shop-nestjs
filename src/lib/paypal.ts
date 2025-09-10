@@ -19,7 +19,7 @@ export async function getPayPalAccessToken(): Promise<string> {
       'Authorization': `Basic ${creds}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    // eslint-disable-next-line no-restricted-syntax
+     
     body: new URLSearchParams({ grant_type: 'client_credentials' }),
   })
   const data: unknown = await res.json().catch(() => ({}))
