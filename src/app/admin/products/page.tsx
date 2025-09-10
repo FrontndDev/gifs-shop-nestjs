@@ -236,7 +236,7 @@ export default function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {products?.map(p => (
                 <tr key={p.id} className="border-t border-[rgba(96,165,250,0.2)]">
                   <td className="p-2">{p.title}</td>
                   <td className="p-2">{p.price}</td>
