@@ -35,6 +35,9 @@ export default function AdminOrdersPage() {
   const [productTitleById, setProductTitleById] = useState<Record<string, string>>({})
   const [productPriceById, setProductPriceById] = useState<Record<string, number>>({})
   const [productImageById, setProductImageById] = useState<Record<string, string>>({})
+  const formatDateTime = (iso: string): string => {
+    try { return new Date(iso).toLocaleString() } catch { return iso }
+  }
   const [filter, setFilter] = useState<'paid' | 'all'>('paid')
 
   const [editOpen, setEditOpen] = useState(false)
@@ -389,6 +392,7 @@ export default function AdminOrdersPage() {
                 <th className="text-left p-2">Товары</th>
                 <th className="text-left p-2">Price</th>
                 <th className="text-left p-2">Status</th>
+                <th className="text-left p-2">Updated</th>
                 <th className="text-left p-2">Actions</th>
               </tr>
             </thead>
@@ -432,6 +436,7 @@ export default function AdminOrdersPage() {
                     })()}
                   </td>
                   <td className="p-2">{o.status}</td>
+                  <td className="p-2">{formatDateTime(o.updatedAt)}</td>
                   <td className="p-2 flex gap-2">
                     <Button variant="danger" size="sm" onClick={() => onDelete(o.id)}>Delete</Button>
                   </td>
