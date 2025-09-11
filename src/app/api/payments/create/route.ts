@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as CreatePaymentRequest
     const amountValue = typeof body.amount === 'string' ? body.amount : Number(body.amount).toFixed(2)
 
+    // Free orders: instantly mark as paid and bypass provider
+    const isFree = !Number.isNaN(parseFloat(amountValue)) && parseFloat(amountValue) <= 0
+
     // Require existing order in DB (recommended flow)
     const metadata = (body.metadata || {}) as Record<string, unknown>
     const orderId = (metadata.orderId as string | undefined) || (metadata.order_id as string | undefined)
@@ -27,6 +30,23 @@ export async function POST(request: NextRequest) {
     const existingOrder = await prisma.order.findUnique({ where: { id: orderId } })
     if (!existingOrder) {
       return NextResponse.json({ error: 'Order not found. Create order first via POST /api/orders.' }, { status: 400 })
+    }
+
+    if (isFree) {
+      const payment = {
+        id: `free_${randomUUID()}`,
+        status: 'succeeded',
+        paid: true,
+        amount: { value: amountValue, currency: body.currency || 'RUB' },
+        confirmation: { type: 'redirect', return_url: body.returnUrl },
+        description: body.description || undefined,
+        metadata: { ...metadata },
+        free: true,
+      }
+
+      await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } }).catch(() => undefined)
+
+      return NextResponse.json(payment, { status: 201 })
     }
 
     // Test mode: instant success without external call

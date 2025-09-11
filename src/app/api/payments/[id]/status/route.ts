@@ -13,6 +13,11 @@ export async function GET(
   try {
     const { id } = await context.params
 
+    // Free payments shortcut: treat as succeeded
+    if (id.startsWith('free_')) {
+      return NextResponse.json({ id, status: 'succeeded', paid: true, free: true })
+    }
+
     // Instant success emulation for local tests
     const isInstantSuccess = process.env.YOOKASSA_TEST_MODE === '1' || process.env.YOOKASSA_TEST_INSTANT_SUCCESS === '1'
     if (isInstantSuccess && id.startsWith('test_')) {

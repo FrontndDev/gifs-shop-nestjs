@@ -205,6 +205,7 @@ export default function AdminProductsPage() {
             <option value="red">red</option>
             <option value="blue">blue</option>
             <option value="black">black</option>
+            <option value="white">white</option>
             <option value="purple">purple</option>
             <option value="pink">pink</option>
             <option value="green">green</option>
@@ -306,6 +307,7 @@ export default function AdminProductsPage() {
             <option value="red">red</option>
             <option value="blue">blue</option>
             <option value="black">black</option>
+            <option value="white">white</option>
             <option value="purple">purple</option>
             <option value="pink">pink</option>
             <option value="green">green</option>

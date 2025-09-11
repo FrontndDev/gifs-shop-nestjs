@@ -18,12 +18,20 @@ type Order = {
   updatedAt: string
 }
 
+type Product = {
+  id: string
+  title: string
+}
+
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || ''
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [productTitleById, setProductTitleById] = useState<Record<string, string>>({})
+  const [filter, setFilter] = useState<'paid' | 'all'>('paid')
 
   const [editOpen, setEditOpen] = useState(false)
   const [editing, setEditing] = useState<Order | null>(null)
@@ -51,7 +59,61 @@ export default function AdminOrdersPage() {
     }
   }
 
-  useEffect(() => { fetchOrders() }, [])
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(`${API}/api/products`)
+      const data = await res.json()
+      const list: Product[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []
+      const map: Record<string, string> = {}
+      for (const p of list) {
+        if (p && typeof p.id === 'string' && typeof p.title === 'string') {
+          map[p.id] = p.title
+        }
+      }
+      setProductTitleById(map)
+    } catch (_e) {
+      // Игнорируем ошибки загрузки продуктов для админки
+    }
+  }
+
+  useEffect(() => {
+    // Параллельно загружаем заказы и продукты
+    fetchOrders()
+    fetchProducts()
+  }, [])
+
+  const extractProductIds = (details: string): string[] => {
+    try {
+      const raw: unknown = typeof details === 'string' ? JSON.parse(details) : details
+      if (!raw || typeof raw !== 'object') return []
+      const itemsUnknown = (raw as Record<string, unknown>).items
+      const items = Array.isArray(itemsUnknown) ? itemsUnknown as Array<unknown> : []
+      return items
+        .map((item) => {
+          const obj = item && typeof item === 'object' ? item as Record<string, unknown> : undefined
+          const val = obj?.id
+          if (typeof val === 'string') return val
+          if (typeof val === 'number' || typeof val === 'boolean') return String(val)
+          return ''
+        })
+        .filter((v): v is string => Boolean(v))
+    } catch {
+      return []
+    }
+  }
+
+  const getOrderProducts = (o: Order): { id: string, title: string }[] => {
+    const ids = extractProductIds(o.details)
+    if (!ids.length) return []
+    const seen = new Set<string>()
+    const items: { id: string, title: string }[] = []
+    for (const id of ids) {
+      if (seen.has(id)) continue
+      seen.add(id)
+      items.push({ id, title: productTitleById[id] || '' })
+    }
+    return items
+  }
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -121,7 +183,23 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Orders</h2>
-        <Button variant="secondary" size="sm" onClick={fetchOrders}>Refresh</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={filter === 'paid' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setFilter('paid')}
+          >
+            Paid
+          </Button>
+          <Button
+            variant={filter === 'all' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setFilter('all')}
+          >
+            All
+          </Button>
+          <Button variant="secondary" size="sm" onClick={fetchOrders}>Refresh</Button>
+        </div>
       </div>
 
       {error && <div className="text-sm text-red-400">{error}</div>}
@@ -132,29 +210,51 @@ export default function AdminOrdersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[rgba(255,255,255,0.04)]">
+                <th className="text-left p-2">ID</th>
                 <th className="text-left p-2">Name</th>
                 <th className="text-left p-2">Contact</th>
                 <th className="text-left p-2">Profile</th>
                 <th className="text-left p-2">Style</th>
                 <th className="text-left p-2">Theme</th>
+                <th className="text-left p-2">Товары</th>
                 <th className="text-left p-2">Status</th>
                 <th className="text-left p-2">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map(o => (
+              {(filter === 'paid' ? orders.filter(o => o.status === 'paid') : orders).map(o => (
                 <tr key={o.id} className="border-t border-[rgba(96,165,250,0.2)]">
+                  <td className="p-2">
+                    <span title={o.id} className="font-mono text-xs">
+                      {o.id && o.id.length > 12 ? `${o.id.slice(0, 8)}…` : o.id}
+                    </span>
+                  </td>
                   <td className="p-2">{o.name}</td>
                   <td className="p-2">{o.telegramDiscord}</td>
                   <td className="p-2 truncate max-w-[220px]">{o.steamProfile}</td>
                   <td className="p-2">{o.style}</td>
                   <td className="p-2">{o.colorTheme}</td>
+                  <td className="p-2">
+                    {(() => {
+                      const items = getOrderProducts(o)
+                      if (!items.length) return '-'
+                      return (
+                        <div className="flex flex-wrap gap-1 max-w-[260px]">
+                          {items.map(it => (
+                            <span
+                              key={it.id}
+                              title={it.id}
+                              className="inline-block px-2 py-0.5 bg-[rgba(255,255,255,0.06)] rounded text-xs"
+                            >
+                              {it.title || it.id}
+                            </span>
+                          ))}
+                        </div>
+                      )
+                    })()}
+                  </td>
                   <td className="p-2">{o.status}</td>
                   <td className="p-2 flex gap-2">
-                    <Button variant="secondary" size="sm" onClick={() => updateStatus(o.id, 'pending')}>Pending</Button>
-                    <Button variant="secondary" size="sm" onClick={() => updateStatus(o.id, 'in_progress')}>In progress</Button>
-                    <Button variant="primary" size="sm" onClick={() => updateStatus(o.id, 'done')}>Done</Button>
-                    <Button variant="secondary" size="sm" onClick={() => openEdit(o)}>Edit</Button>
                     <Button variant="danger" size="sm" onClick={() => onDelete(o.id)}>Delete</Button>
                   </td>
                 </tr>

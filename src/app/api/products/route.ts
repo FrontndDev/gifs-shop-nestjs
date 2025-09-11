@@ -98,7 +98,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, price, video, badge, showcase, profileColor, theme, original } = body
 
-    if (!title || !price || !video) {
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : Number(price)
+
+    if (!title || !video || Number.isNaN(numericPrice)) {
       return NextResponse.json(
         { error: 'Title, price, and video are required' },
         { status: 400 }
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
     const product = await prisma.product.create({
       data: {
         title,
-        price: parseFloat(price),
+        price: numericPrice,
         video,
         badge: badge || null,
         showcase: showcase ?? undefined,

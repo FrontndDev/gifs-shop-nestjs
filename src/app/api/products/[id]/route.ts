@@ -61,6 +61,7 @@ export async function PUT(
     const { id } = await context.params
     const body = await request.json()
     const { title, price, video, badge, showcase, profileColor, theme, original } = body
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : (typeof price === 'number' ? price : undefined)
 
     const product = await prisma.product.update({
       where: {
@@ -68,7 +69,7 @@ export async function PUT(
       },
       data: {
         title,
-        price: price ? parseFloat(price) : undefined,
+        price: numericPrice === undefined ? undefined : numericPrice,
         video,
         badge,
         showcase,
