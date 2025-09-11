@@ -21,6 +21,7 @@ type Order = {
 type Product = {
   id: string
   title: string
+  price?: number
 }
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || ''
@@ -31,6 +32,7 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [productTitleById, setProductTitleById] = useState<Record<string, string>>({})
+  const [productPriceById, setProductPriceById] = useState<Record<string, number>>({})
   const [filter, setFilter] = useState<'paid' | 'all'>('paid')
 
   const [editOpen, setEditOpen] = useState(false)
@@ -65,12 +67,17 @@ export default function AdminOrdersPage() {
       const data = await res.json()
       const list: Product[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []
       const map: Record<string, string> = {}
+      const priceMap: Record<string, number> = {}
       for (const p of list) {
         if (p && typeof p.id === 'string' && typeof p.title === 'string') {
           map[p.id] = p.title
         }
+        if (p && typeof p.id === 'string' && typeof p.price === 'number') {
+          priceMap[p.id] = p.price
+        }
       }
       setProductTitleById(map)
+      setProductPriceById(priceMap)
     } catch (_e) {
       // Игнорируем ошибки загрузки продуктов для админки
     }
@@ -113,6 +120,21 @@ export default function AdminOrdersPage() {
       items.push({ id, title: productTitleById[id] || '' })
     }
     return items
+  }
+
+  const getOrderTotal = (o: Order): number | null => {
+    const ids = extractProductIds(o.details)
+    if (!ids.length) return null
+    let sum = 0
+    let hasAny = false
+    for (const id of ids) {
+      const price = productPriceById[id]
+      if (typeof price === 'number' && !Number.isNaN(price)) {
+        sum += price
+        hasAny = true
+      }
+    }
+    return hasAny ? sum : null
   }
 
   const updateStatus = async (id: string, status: string) => {
@@ -217,6 +239,7 @@ export default function AdminOrdersPage() {
                 <th className="text-left p-2">Style</th>
                 <th className="text-left p-2">Theme</th>
                 <th className="text-left p-2">Товары</th>
+                <th className="text-left p-2">Price</th>
                 <th className="text-left p-2">Status</th>
                 <th className="text-left p-2">Actions</th>
               </tr>
@@ -251,6 +274,13 @@ export default function AdminOrdersPage() {
                           ))}
                         </div>
                       )
+                    })()}
+                  </td>
+                  <td className="p-2">
+                    {(() => {
+                      const total = getOrderTotal(o)
+                      if (total === null) return '-'
+                      return total.toFixed(2)
                     })()}
                   </td>
                   <td className="p-2">{o.status}</td>
