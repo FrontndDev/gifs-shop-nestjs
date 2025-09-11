@@ -15,7 +15,13 @@ export async function GET(request: NextRequest) {
     }
 
     const showcaseValues = parseMulti('showcase')
-    const profileColorValues = parseMulti('profileColor')
+    const rawProfileColorValues = parseMulti('profileColor')
+    const normalizeProfileColor = (v: string): string => {
+      const lc = v.toLowerCase()
+      if (lc === 'black-white' || lc === 'blackwhite' || lc === 'black_and_white') return 'black and white'
+      return v
+    }
+    const profileColorValues = rawProfileColorValues.map(normalizeProfileColor)
     const themeValues = parseMulti('theme')
 
     const where: Record<string, unknown> = {}
