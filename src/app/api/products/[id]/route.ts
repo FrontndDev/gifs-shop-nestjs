@@ -71,7 +71,7 @@ export async function PUT(
         title,
         price: numericPrice === undefined ? undefined : numericPrice,
         video,
-        badge,
+        badge: badge === '' ? null : badge,
         showcase,
         profileColor,
         theme,

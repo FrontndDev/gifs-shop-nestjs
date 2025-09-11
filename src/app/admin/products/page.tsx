@@ -138,7 +138,7 @@ export default function AdminProductsPage() {
           title: editForm.title,
           price: editForm.price ? Number(editForm.price) : undefined,
           video: editForm.video,
-          badge: editForm.badge || undefined,
+          badge: editForm.badge === '' ? null : editForm.badge,
           showcase: editForm.showcase || undefined,
           profileColor: editForm.profileColor || undefined,
           theme: editForm.theme || undefined,
