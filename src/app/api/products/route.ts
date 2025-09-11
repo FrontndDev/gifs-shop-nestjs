@@ -23,12 +23,34 @@ export async function GET(request: NextRequest) {
     if (profileColorValues.length) where.profileColor = { in: profileColorValues }
     if (themeValues.length) where.theme = { in: themeValues }
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    // Optional pagination
+    const pageParam = params.get('page')
+    const perParam = params.get('per') || params.get('limit')
+    const hasPagination = pageParam !== null
+    const per = hasPagination ? Math.max(1, Math.min(100, parseInt(perParam || '10', 10) || 10)) : undefined
+    const page = hasPagination ? Math.max(1, parseInt(pageParam || '1', 10) || 1) : undefined
+
+    let products
+    let totalCount: number | undefined
+    if (hasPagination) {
+      const skip = ((page as number) - 1) * (per as number)
+      ;[totalCount, products] = await Promise.all([
+        prisma.product.count({ where }),
+        prisma.product.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: per,
+        }),
+      ])
+    } else {
+      products = await prisma.product.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    }
 
     const forwardedProto = request.headers.get('x-forwarded-proto')
     const forwardedHost = request.headers.get('x-forwarded-host')
@@ -48,6 +70,17 @@ export async function GET(request: NextRequest) {
       ...p,
       video: normalizeUrl(p.video) as string,
     }))
+
+    if (hasPagination) {
+      const pages = Math.max(1, Math.ceil((totalCount as number) / (per as number)))
+      return NextResponse.json({
+        items: withAbsolute,
+        total: totalCount,
+        page,
+        per,
+        pages,
+      })
+    }
 
     return NextResponse.json(withAbsolute)
   } catch (error) {
