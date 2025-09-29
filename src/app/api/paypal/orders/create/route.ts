@@ -10,6 +10,8 @@ type CreateOrderBody = {
   intent?: 'CAPTURE' | 'AUTHORIZE'
   returnUrl?: string
   cancelUrl?: string
+  metadata?: { orderId?: string }
+  orderId?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -19,14 +21,28 @@ export async function POST(request: NextRequest) {
     const base = getPayPalBaseUrl()
 
     const amountValue = typeof body.amount === 'string' ? body.amount : Number(body.amount).toFixed(2)
+    const orderIdForRedirect = typeof body?.metadata?.orderId === 'string'
+      ? body.metadata?.orderId
+      : (typeof body?.orderId === 'string' ? body.orderId : undefined)
+    const feBase = (process.env.FRONTEND_BASE_URL || 'http://localhost:5173').replace(/\/$/, '')
+    const computedReturnUrl = orderIdForRedirect
+      ? `${feBase}/success/${encodeURIComponent(orderIdForRedirect)}?provider=paypal`
+      : `${feBase}/success?provider=paypal`
+    const computedCancelUrl = orderIdForRedirect
+      ? `${feBase}/cancel/${encodeURIComponent(orderIdForRedirect)}?provider=paypal`
+      : `${feBase}/cancel?provider=paypal`
     const payload = {
       intent: body.intent || 'CAPTURE',
       purchase_units: [
-        { amount: { currency_code: body.currency || 'USD', value: amountValue } }
+        {
+          amount: { currency_code: body.currency || 'USD', value: amountValue },
+          // Пробрасываем связь с нашим заказом через custom_id
+          custom_id: body?.metadata?.orderId || undefined,
+        }
       ],
       application_context: {
-        return_url: body.returnUrl || process.env.PAYPAL_RETURN_URL,
-        cancel_url: body.cancelUrl || process.env.PAYPAL_CANCEL_URL,
+        return_url: computedReturnUrl,
+        cancel_url: computedCancelUrl,
       }
     }
 
