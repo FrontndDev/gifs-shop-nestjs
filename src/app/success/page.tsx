@@ -1,8 +1,8 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function SuccessPage() {
+function SuccessBody() {
   const params = useSearchParams()
   const token = params.get('token')
   const [state, setState] = useState<'idle'|'capturing'|'done'|'error'>('idle')
@@ -46,6 +46,14 @@ export default function SuccessPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">Загрузка…</div>}>
+      <SuccessBody />
+    </Suspense>
   )
 }
 

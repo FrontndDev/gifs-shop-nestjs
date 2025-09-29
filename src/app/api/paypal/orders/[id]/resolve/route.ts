@@ -28,7 +28,7 @@ export async function GET(
 
     const units = Array.isArray(data?.purchase_units) ? data.purchase_units : []
     const unit = units[0] || {}
-    let customId: string | undefined = typeof unit?.custom_id === 'string' ? unit.custom_id : undefined
+    const customId: string | undefined = typeof unit?.custom_id === 'string' ? unit.custom_id : undefined
     const amountVal = unit?.amount?.value
     const amount = typeof amountVal === 'string' ? parseFloat(amountVal) : undefined
 
@@ -55,7 +55,7 @@ export async function GET(
     }
 
     return NextResponse.json({ orderId: null }, { status: 404 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to resolve order' }, { status: 500 })
   }
 }
