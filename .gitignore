@@ -45,3 +45,4 @@ next-env.d.ts
 /public/uploads
 /prisma/dev.db
 /prisma/prisma/dev.db
+.env
