@@ -102,9 +102,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, price, video, badge, showcase, profileColor, theme, original } = body
+    const { title, price, priceUSD, video, badge, showcase, profileColor, theme, original } = body
 
     const numericPrice = typeof price === 'string' ? parseFloat(price) : Number(price)
+    const numericPriceUSD = typeof priceUSD === 'string' ? parseFloat(priceUSD) : (typeof priceUSD === 'number' ? priceUSD : undefined)
 
     if (!title || !video || Number.isNaN(numericPrice)) {
       return NextResponse.json(
@@ -117,6 +118,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         price: numericPrice,
+        priceUSD: typeof numericPriceUSD === 'number' && !Number.isNaN(numericPriceUSD) ? numericPriceUSD : undefined,
         video,
         badge: badge || null,
         showcase: showcase ?? undefined,

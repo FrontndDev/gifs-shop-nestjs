@@ -14,6 +14,7 @@ model Product {
   id        String   @id @default(cuid())
   title     String
   price     Float
+  priceUSD  Float?
   video     String   // путь к gif/видео файлу
   original  String?  // приватная ссылка, доступна только после оплаты
   badge     String?  // опциональный бейдж (Хит продаж, Новинка, etc.)

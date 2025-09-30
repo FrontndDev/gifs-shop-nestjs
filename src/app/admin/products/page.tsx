@@ -9,6 +9,7 @@ type Product = {
   id: string
   title: string
   price: number
+  priceUSD?: number | null
   video: string
   badge: string | null
   showcase?: string | null
@@ -30,6 +31,7 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState({
     title: '',
     price: '',
+    priceUSD: '',
     video: '',
     badge: '',
     showcase: '',
@@ -43,6 +45,7 @@ export default function AdminProductsPage() {
   const [editForm, setEditForm] = useState({
     title: '',
     price: '',
+    priceUSD: '',
     video: '',
     badge: '',
     showcase: '',
@@ -86,6 +89,7 @@ export default function AdminProductsPage() {
         body: JSON.stringify({
           title: form.title,
           price: Number(form.price),
+          priceUSD: form.priceUSD ? Number(form.priceUSD) : undefined,
           video: form.video,
           badge: form.badge || null,
           showcase: form.showcase || undefined,
@@ -95,7 +99,7 @@ export default function AdminProductsPage() {
         })
       })
       if (!res.ok) throw new Error('Failed to create')
-      setForm({ title: '', price: '', video: '', badge: '', showcase: '', profileColor: '', theme: '', original: '' })
+      setForm({ title: '', price: '', priceUSD: '', video: '', badge: '', showcase: '', profileColor: '', theme: '', original: '' })
       fetchProducts()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Create error')
@@ -117,6 +121,7 @@ export default function AdminProductsPage() {
     setEditForm({
       title: p.title || '',
       price: String(p.price ?? ''),
+      priceUSD: String(p.priceUSD ?? ''),
       video: p.video || '',
       badge: p.badge || '',
       showcase: p.showcase || '',
@@ -137,6 +142,7 @@ export default function AdminProductsPage() {
         body: JSON.stringify({
           title: editForm.title,
           price: editForm.price ? Number(editForm.price) : undefined,
+          priceUSD: editForm.priceUSD ? Number(editForm.priceUSD) : undefined,
           video: editForm.video,
           badge: editForm.badge === '' ? null : editForm.badge,
           showcase: editForm.showcase || undefined,
@@ -165,6 +171,7 @@ export default function AdminProductsPage() {
         <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
           <Input placeholder="Title" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} />
           <Input placeholder="Price" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} />
+          <Input placeholder="Price (USD)" value={form.priceUSD} onChange={e=>setForm(f=>({...f,priceUSD:e.target.value}))} />
           <div className="flex items-center gap-3">
             <input
               type="file"
@@ -236,6 +243,7 @@ export default function AdminProductsPage() {
               <tr className="bg-[rgba(255,255,255,0.04)]">
                 <th className="text-left p-2">Title</th>
                 <th className="text-left p-2">Price</th>
+                <th className="text-left p-2">Price USD</th>
                 <th className="text-left p-2">Badge</th>
                 <th className="text-left p-2">Showcase</th>
                 <th className="text-left p-2">Profile Color</th>
@@ -248,6 +256,7 @@ export default function AdminProductsPage() {
                 <tr key={p.id} className="border-t border-[rgba(96,165,250,0.2)]">
                   <td className="p-2">{p.title}</td>
                   <td className="p-2">{p.price}</td>
+                  <td className="p-2">{p.priceUSD ?? '-'}</td>
                   <td className="p-2">{p.badge ?? '-'}</td>
                   <td className="p-2">{p.showcase ?? '-'}</td>
                   <td className="p-2">{p.profileColor ?? '-'}</td>
@@ -267,6 +276,7 @@ export default function AdminProductsPage() {
         <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
           <Input placeholder="Title" value={editForm.title} onChange={e=>setEditForm(f=>({...f,title:e.target.value}))} />
           <Input placeholder="Price" value={editForm.price} onChange={e=>setEditForm(f=>({...f,price:e.target.value}))} />
+          <Input placeholder="Price (USD)" value={editForm.priceUSD} onChange={e=>setEditForm(f=>({...f,priceUSD:e.target.value}))} />
           <div className="md:col-span-2 flex items-center gap-3">
             <input
               type="file"
