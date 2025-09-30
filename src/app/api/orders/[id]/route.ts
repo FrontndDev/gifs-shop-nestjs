@@ -122,7 +122,9 @@ export async function PUT(
           .filter((v): v is string => Boolean(v))
         if (ids.length) {
           const products = await prisma.product.findMany({ where: { id: { in: Array.from(new Set(ids)) } }, select: { id: true, title: true, price: true } })
-          const pMap = new Map(products.map(p => [p.id, p]))
+          const pMap = new Map<string, { id: string; title: string; price: number | null }>(
+            products.map((p: { id: string; title: string; price: number | null }) => [p.id, p])
+          )
           let total = 0
           const enrichedItems = items.map((item) => {
             const rec = (item && typeof item === 'object') ? (item as Record<string, unknown>) : {}
