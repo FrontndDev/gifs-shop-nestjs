@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       return `${base}${path}`
     }
 
-    const withAbsolute = products.map((p) => ({
+    const withAbsolute = products.map((p: { video: string } & Record<string, unknown>) => ({
       ...p,
       video: normalizeUrl(p.video) as string,
     }))
