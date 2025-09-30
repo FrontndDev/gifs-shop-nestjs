@@ -57,7 +57,9 @@ export async function GET(
           where: { id: { in: productIds } },
           select: { id: true, original: true }
         })
-        const map = new Map(products.map(p => [p.id, p.original]))
+        const map = new Map<string, string | null>(
+          products.map((p: { id: string; original: string | null }) => [p.id, p.original])
+        )
         const downloads = productIds
           .map(pid => {
             const orig = map.get(pid)
