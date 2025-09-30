@@ -63,7 +63,9 @@ export async function POST(request: NextRequest) {
             where: { id: { in: Array.from(new Set(ids)) } },
             select: { id: true, title: true, price: true }
           })
-          const pMap = new Map(products.map(p => [p.id, p]))
+          const pMap = new Map<string, { id: string; title: string; price: number | null }>(
+            products.map((p: { id: string; title: string; price: number | null }) => [p.id, p])
+          )
 
           let total = 0
           const enrichedItems = items.map((item) => {
