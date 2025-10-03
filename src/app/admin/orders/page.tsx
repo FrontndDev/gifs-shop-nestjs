@@ -95,7 +95,7 @@ export default function AdminOrdersPage() {
       setProductPriceById(priceMap)
       setProductPriceUSDById(priceUSDMap)
       setProductImageById(imageMap)
-    } catch (_e) {
+    } catch {
       // Игнорируем ошибки загрузки продуктов для админки
     }
   }
@@ -296,19 +296,19 @@ export default function AdminOrdersPage() {
     }
   }, [orders, productPriceById, productPriceUSDById])
 
-  const updateStatus = async (id: string, status: string) => {
-    try {
-      const res = await fetch(`${API}/api/orders/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      })
-      if (!res.ok) throw new Error('Failed to update')
-      fetchOrders()
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Update error')
-    }
-  }
+  // const updateStatus = async (id: string, status: string) => {
+  //   try {
+  //     const res = await fetch(`${API}/api/orders/${id}`, {
+  //       method: 'PUT',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ status })
+  //     })
+  //     if (!res.ok) throw new Error('Failed to update')
+  //     fetchOrders()
+  //   } catch (e: unknown) {
+  //     setError(e instanceof Error ? e.message : 'Update error')
+  //   }
+  // }
 
   const onDelete = async (id: string) => {
     try {
@@ -320,19 +320,19 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const openEdit = (o: Order) => {
-    setEditing(o)
-    setEditForm({
-      name: o.name || '',
-      telegramDiscord: o.telegramDiscord || '',
-      steamProfile: o.steamProfile || '',
-      style: o.style || '',
-      colorTheme: o.colorTheme || '',
-      details: o.details || '',
-      status: o.status || '',
-    })
-    setEditOpen(true)
-  }
+  // const openEdit = (o: Order) => {
+  //   setEditing(o)
+  //   setEditForm({
+  //     name: o.name || '',
+  //     telegramDiscord: o.telegramDiscord || '',
+  //     steamProfile: o.steamProfile || '',
+  //     style: o.style || '',
+  //     colorTheme: o.colorTheme || '',
+  //     details: o.details || '',
+  //     status: o.status || '',
+  //   })
+  //   setEditOpen(true)
+  // }
 
   const saveEdit = async () => {
     if (!editing) return
@@ -372,6 +372,7 @@ export default function AdminOrdersPage() {
               const media = (s.image && /\.gif$/i.test(s.image)) ? s.image : (s.image && /\/uploads\//.test(s.image)) ? s.image : '/next.svg'
               return (
                 <div key={s.id} className="flex items-center gap-3 rounded border border-[rgba(96,165,250,0.25)] bg-[rgba(255,255,255,0.03)] p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={media} alt={s.title} className="w-12 h-12 rounded object-cover border border-[rgba(96,165,250,0.35)]" />
                   <div className="min-w-0">
                     <div className="font-medium truncate" title={s.title}>{s.title}</div>

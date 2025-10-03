@@ -68,7 +68,19 @@ export async function PUT(
     const numericPriceUSD = (numericPriceUSDRaw !== undefined && !Number.isNaN(numericPriceUSDRaw)) ? numericPriceUSDRaw : undefined
 
     // Если titleEn изменился, нужно обновить slug
-    let updateData: any = {
+    const updateData: {
+      title: string;
+      titleEn: string | null;
+      price?: number;
+      priceUSD?: number | null;
+      video: string;
+      badge: string | null;
+      showcase?: string | null;
+      profileColor?: string | null;
+      theme?: string | null;
+      original?: string | null;
+      slug?: string | null;
+    } = {
       title,
       titleEn,
       price: numericPrice === undefined ? undefined : numericPrice,

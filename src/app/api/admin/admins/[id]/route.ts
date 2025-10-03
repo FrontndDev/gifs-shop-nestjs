@@ -28,8 +28,9 @@ async function checkAdminAuth(request: NextRequest) {
 // GET /api/admin/admins/[id] - получить админа по ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params
   try {
     const authResult = await checkAdminAuth(request)
     if ('error' in authResult) {
@@ -40,7 +41,7 @@ export async function GET(
     }
 
     const admin = await prisma.admin.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         username: true,
@@ -71,8 +72,9 @@ export async function GET(
 // PUT /api/admin/admins/[id] - обновить админа
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params
   try {
     const authResult = await checkAdminAuth(request)
     if ('error' in authResult) {
@@ -86,7 +88,7 @@ export async function PUT(
 
     // Проверяем, существует ли админ
     const existingAdmin = await prisma.admin.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingAdmin) {
@@ -125,14 +127,19 @@ export async function PUT(
     }
 
     // Подготавливаем данные для обновления
-    const updateData: any = {}
+    const updateData: {
+      username?: string;
+      email?: string;
+      isActive?: boolean;
+      password?: string;
+    } = {}
     if (username !== undefined) updateData.username = username
     if (email !== undefined) updateData.email = email
     if (isActive !== undefined) updateData.isActive = isActive
     if (password) updateData.password = hashPassword(password)
 
     const admin = await prisma.admin.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       select: {
         id: true,
@@ -157,8 +164,9 @@ export async function PUT(
 // DELETE /api/admin/admins/[id] - деактивировать админа
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params
   try {
     const authResult = await checkAdminAuth(request)
     if ('error' in authResult) {
@@ -170,7 +178,7 @@ export async function DELETE(
 
     // Проверяем, существует ли админ
     const existingAdmin = await prisma.admin.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingAdmin) {
@@ -181,7 +189,7 @@ export async function DELETE(
     }
 
     // Нельзя удалить самого себя
-    if (params.id === authResult.admin.id) {
+    if (id === authResult.admin.id) {
       return NextResponse.json(
         { error: 'Cannot delete yourself' },
         { status: 400 }
@@ -190,7 +198,7 @@ export async function DELETE(
 
     // Деактивируем админа вместо удаления
     await prisma.admin.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false }
     })
 

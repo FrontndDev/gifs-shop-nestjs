@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
         if (response.ok) {
           router.push('/admin')
         }
-      } catch (error) {
+      } catch {
         // Игнорируем ошибки, пользователь не авторизован
       }
     }

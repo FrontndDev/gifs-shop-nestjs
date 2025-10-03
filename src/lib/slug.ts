@@ -27,7 +27,7 @@ export function isValidSlug(slug: string): boolean {
  */
 export async function createUniqueSlug(
   baseSlug: string,
-  existingSlugs: string[],
+  existingSlugs: (string | null)[],
   maxAttempts: number = 100
 ): Promise<string> {
   let slug = baseSlug
