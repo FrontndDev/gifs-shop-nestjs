@@ -4,6 +4,31 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 import { prisma } from '@/lib/prisma'
 import { generateSlug, createUniqueSlug } from '@/lib/slug'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+
+// Проверка авторизации админа
+async function checkAdminAuth(request: NextRequest) {
+  const token = getTokenFromRequest(request)
+  if (!token) {
+    return { error: 'No token provided', status: 401 }
+  }
+
+  const payload = verifyToken(token)
+  if (!payload) {
+    return { error: 'Invalid token', status: 401 }
+  }
+
+  // Проверяем, что админ существует и активен
+  const admin = await prisma.admin.findUnique({
+    where: { id: payload.id }
+  })
+
+  if (!admin || !admin.isActive) {
+    return { error: 'Admin not found or inactive', status: 401 }
+  }
+
+  return { admin }
+}
 
 // GET /api/products - получить продукты с фильтрами
 export async function GET(request: NextRequest) {
@@ -102,6 +127,15 @@ export async function GET(request: NextRequest) {
 // POST /api/products - создать новый продукт
 export async function POST(request: NextRequest) {
   try {
+    // Проверяем авторизацию админа
+    const authResult = await checkAdminAuth(request)
+    if ('error' in authResult) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.status }
+      )
+    }
+
     const body = await request.json()
     const { title, titleEn, price, priceUSD, video, badge, showcase, profileColor, theme, original } = body
 
