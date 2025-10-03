@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/Card'
 type Product = {
   id: string
   title: string
+  titleEn?: string | null
+  slug?: string | null
   price: number
   priceUSD?: number | null
   video: string
@@ -30,6 +32,7 @@ export default function AdminProductsPage() {
 
   const [form, setForm] = useState({
     title: '',
+    titleEn: '',
     price: '',
     priceUSD: '',
     video: '',
@@ -44,6 +47,7 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [editForm, setEditForm] = useState({
     title: '',
+    titleEn: '',
     price: '',
     priceUSD: '',
     video: '',
@@ -88,6 +92,7 @@ export default function AdminProductsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: form.title,
+          titleEn: form.titleEn,
           price: Number(form.price),
           priceUSD: form.priceUSD ? Number(form.priceUSD) : undefined,
           video: form.video,
@@ -99,7 +104,7 @@ export default function AdminProductsPage() {
         })
       })
       if (!res.ok) throw new Error('Failed to create')
-      setForm({ title: '', price: '', priceUSD: '', video: '', badge: '', showcase: '', profileColor: '', theme: '', original: '' })
+      setForm({ title: '', titleEn: '', price: '', priceUSD: '', video: '', badge: '', showcase: '', profileColor: '', theme: '', original: '' })
       fetchProducts()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Create error')
@@ -120,6 +125,7 @@ export default function AdminProductsPage() {
     setEditing(p)
     setEditForm({
       title: p.title || '',
+      titleEn: p.titleEn || '',
       price: String(p.price ?? ''),
       priceUSD: String(p.priceUSD ?? ''),
       video: p.video || '',
@@ -141,6 +147,7 @@ export default function AdminProductsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: editForm.title,
+          titleEn: editForm.titleEn,
           price: editForm.price ? Number(editForm.price) : undefined,
           priceUSD: editForm.priceUSD ? Number(editForm.priceUSD) : undefined,
           video: editForm.video,
@@ -169,7 +176,8 @@ export default function AdminProductsPage() {
 
       <Card className="p-4">
         <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
-          <Input placeholder="Title" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} />
+          <Input placeholder="Title (Russian)" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} />
+          <Input placeholder="Title (English) - Optional" value={form.titleEn} onChange={e=>setForm(f=>({...f,titleEn:e.target.value}))} />
           <Input placeholder="Price" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} />
           <Input placeholder="Price (USD)" value={form.priceUSD} onChange={e=>setForm(f=>({...f,priceUSD:e.target.value}))} />
           <div className="flex items-center gap-3">
@@ -242,6 +250,8 @@ export default function AdminProductsPage() {
             <thead>
               <tr className="bg-[rgba(255,255,255,0.04)]">
                 <th className="text-left p-2">Title</th>
+                <th className="text-left p-2">Title (EN)</th>
+                <th className="text-left p-2">Slug</th>
                 <th className="text-left p-2">Price</th>
                 <th className="text-left p-2">Price USD</th>
                 <th className="text-left p-2">Badge</th>
@@ -255,6 +265,8 @@ export default function AdminProductsPage() {
               {products?.map(p => (
                 <tr key={p.id} className="border-t border-[rgba(96,165,250,0.2)]">
                   <td className="p-2">{p.title}</td>
+                  <td className="p-2">{p.titleEn ?? '—'}</td>
+                  <td className="p-2 font-mono text-xs">{p.slug ?? '—'}</td>
                   <td className="p-2">{p.price}</td>
                   <td className="p-2">{p.priceUSD ?? '-'}</td>
                   <td className="p-2">{p.badge ?? '-'}</td>
@@ -274,7 +286,8 @@ export default function AdminProductsPage() {
 
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit product">
         <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-          <Input placeholder="Title" value={editForm.title} onChange={e=>setEditForm(f=>({...f,title:e.target.value}))} />
+          <Input placeholder="Title (Russian)" value={editForm.title} onChange={e=>setEditForm(f=>({...f,title:e.target.value}))} />
+          <Input placeholder="Title (English) - Optional" value={editForm.titleEn} onChange={e=>setEditForm(f=>({...f,titleEn:e.target.value}))} />
           <Input placeholder="Price" value={editForm.price} onChange={e=>setEditForm(f=>({...f,price:e.target.value}))} />
           <Input placeholder="Price (USD)" value={editForm.priceUSD} onChange={e=>setEditForm(f=>({...f,priceUSD:e.target.value}))} />
           <div className="md:col-span-2 flex items-center gap-3">

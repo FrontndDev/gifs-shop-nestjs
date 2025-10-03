@@ -22,6 +22,7 @@ type Product = {
   id: string
   title: string
   price?: number
+  priceUSD?: number
   video?: string
 }
 
@@ -34,6 +35,7 @@ export default function AdminOrdersPage() {
 
   const [productTitleById, setProductTitleById] = useState<Record<string, string>>({})
   const [productPriceById, setProductPriceById] = useState<Record<string, number>>({})
+  const [productPriceUSDById, setProductPriceUSDById] = useState<Record<string, number>>({})
   const [productImageById, setProductImageById] = useState<Record<string, string>>({})
   const formatDateTime = (iso: string): string => {
     try { return new Date(iso).toLocaleString() } catch { return iso }
@@ -73,6 +75,7 @@ export default function AdminOrdersPage() {
       const list: Product[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []
       const map: Record<string, string> = {}
       const priceMap: Record<string, number> = {}
+      const priceUSDMap: Record<string, number> = {}
       const imageMap: Record<string, string> = {}
       for (const p of list) {
         if (p && typeof p.id === 'string' && typeof p.title === 'string') {
@@ -81,12 +84,16 @@ export default function AdminOrdersPage() {
         if (p && typeof p.id === 'string' && typeof p.price === 'number') {
           priceMap[p.id] = p.price
         }
+        if (p && typeof p.id === 'string' && typeof p.priceUSD === 'number') {
+          priceUSDMap[p.id] = p.priceUSD
+        }
         if (p && typeof p.id === 'string' && typeof p.video === 'string') {
           imageMap[p.id] = p.video
         }
       }
       setProductTitleById(map)
       setProductPriceById(priceMap)
+      setProductPriceUSDById(priceUSDMap)
       setProductImageById(imageMap)
     } catch (_e) {
       // Игнорируем ошибки загрузки продуктов для админки
@@ -174,11 +181,15 @@ export default function AdminOrdersPage() {
     id: string
     title: string
     price: number | null
+    priceUSD: number | null
     image: string | null
     count: number
     sumToday: number
+    sumTodayUSD: number
     sum7d: number
+    sum7dUSD: number
     sum30d: number
+    sum30dUSD: number
   }
 
   const topStats = useMemo<Stat[]>(() => {
@@ -205,16 +216,28 @@ export default function AdminOrdersPage() {
           if (!id) continue
           const title = typeof rec.title === 'string' ? rec.title : (productTitleById[id] || id)
           const price = typeof rec.price === 'number' ? rec.price : (typeof productPriceById[id] === 'number' ? productPriceById[id] : null)
+          const priceUSD = typeof productPriceUSDById[id] === 'number' ? productPriceUSDById[id] : null
           const image = productImageById[id] || null
-          const stat = acc.get(id) || { id, title, price, image, count: 0, sumToday: 0, sum7d: 0, sum30d: 0 }
+          const stat = acc.get(id) || { 
+            id, title, price, priceUSD, image, count: 0, 
+            sumToday: 0, sumTodayUSD: 0, 
+            sum7d: 0, sum7dUSD: 0, 
+            sum30d: 0, sum30dUSD: 0 
+          }
           stat.count += 1
           if (typeof price === 'number') {
             if (created >= start30d) stat.sum30d += price
             if (created >= start7d) stat.sum7d += price
             if (created >= startToday) stat.sumToday += price
           }
+          if (typeof priceUSD === 'number') {
+            if (created >= start30d) stat.sum30dUSD += priceUSD
+            if (created >= start7d) stat.sum7dUSD += priceUSD
+            if (created >= startToday) stat.sumTodayUSD += priceUSD
+          }
           stat.title = title
           stat.price = price
+          stat.priceUSD = priceUSD
           stat.image = image
           acc.set(id, stat)
         }
@@ -226,7 +249,7 @@ export default function AdminOrdersPage() {
     } catch {
       return []
     }
-  }, [orders, productTitleById, productPriceById, productImageById])
+  }, [orders, productTitleById, productPriceById, productPriceUSDById, productImageById])
 
   const revenue = useMemo(() => {
     const paid = orders.filter(o => o.status === 'paid')
@@ -234,17 +257,44 @@ export default function AdminOrdersPage() {
     const start7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const start28d = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
     let totalAll = 0
+    let totalAllUSD = 0
     let total7d = 0
+    let total7dUSD = 0
     let total28d = 0
+    let total28dUSD = 0
+    
     for (const o of paid) {
       const created = new Date(o.createdAt)
-      const t = getOrderTotal(o) || 0
-      totalAll += t
-      if (created >= start28d) total28d += t
-      if (created >= start7d) total7d += t
+      
+      // Получаем товары из заказа
+      const ids = extractProductIds(o.details)
+      let orderTotalRUB = 0
+      let orderTotalUSD = 0
+      
+      for (const id of ids) {
+        const priceRUB = productPriceById[id]
+        const priceUSD = productPriceUSDById[id]
+        if (typeof priceRUB === 'number') orderTotalRUB += priceRUB
+        if (typeof priceUSD === 'number') orderTotalUSD += priceUSD
+      }
+      
+      totalAll += orderTotalRUB
+      totalAllUSD += orderTotalUSD
+      if (created >= start28d) {
+        total28d += orderTotalRUB
+        total28dUSD += orderTotalUSD
+      }
+      if (created >= start7d) {
+        total7d += orderTotalRUB
+        total7dUSD += orderTotalUSD
+      }
     }
-    return { total7d, total28d, totalAll }
-  }, [orders, productPriceById])
+    return { 
+      total7d, total7dUSD, 
+      total28d, total28dUSD, 
+      totalAll, totalAllUSD 
+    }
+  }, [orders, productPriceById, productPriceUSDById])
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -325,9 +375,16 @@ export default function AdminOrdersPage() {
                   <img src={media} alt={s.title} className="w-12 h-12 rounded object-cover border border-[rgba(96,165,250,0.35)]" />
                   <div className="min-w-0">
                     <div className="font-medium truncate" title={s.title}>{s.title}</div>
-                    <div className="text-xs text-slate-300">Продаж: {s.count}{typeof s.price === 'number' ? ` • Цена: ${s.price.toFixed(2)}` : ''}</div>
+                    <div className="text-xs text-slate-300">
+                      Продаж: {s.count}
+                      {typeof s.price === 'number' ? ` • Цена: ₽${s.price.toFixed(2)}` : ''}
+                      {typeof s.priceUSD === 'number' ? ` / $${s.priceUSD.toFixed(2)}` : ''}
+                    </div>
                     <div className="text-[11px] text-slate-400 mt-0.5">
-                      Сегодня: {s.sumToday.toFixed(2)} • 7 дн: {s.sum7d.toFixed(2)} • 30 дн: {s.sum30d.toFixed(2)}
+                      <div>RUB: Сегодня ₽{s.sumToday.toFixed(2)} • 7д ₽{s.sum7d.toFixed(2)} • 30д ₽{s.sum30d.toFixed(2)}</div>
+                      {(s.sumTodayUSD > 0 || s.sum7dUSD > 0 || s.sum30dUSD > 0) && (
+                        <div>USD: Сегодня ${s.sumTodayUSD.toFixed(2)} • 7д ${s.sum7dUSD.toFixed(2)} • 30д ${s.sum30dUSD.toFixed(2)}</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -342,15 +399,24 @@ export default function AdminOrdersPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="rounded border border-[rgba(96,165,250,0.25)] bg-[rgba(255,255,255,0.03)] p-4">
             <div className="text-slate-400 text-xs">Доход за 7 дней</div>
-            <div className="text-2xl font-semibold mt-1">{revenue.total7d.toFixed(2)}</div>
+            <div className="text-xl font-semibold mt-1">₽{revenue.total7d.toFixed(2)}</div>
+            {revenue.total7dUSD > 0 && (
+              <div className="text-lg font-medium text-slate-300">${revenue.total7dUSD.toFixed(2)}</div>
+            )}
           </div>
           <div className="rounded border border-[rgba(96,165,250,0.25)] bg-[rgba(255,255,255,0.03)] p-4">
             <div className="text-slate-400 text-xs">Доход за 28 дней</div>
-            <div className="text-2xl font-semibold mt-1">{revenue.total28d.toFixed(2)}</div>
+            <div className="text-xl font-semibold mt-1">₽{revenue.total28d.toFixed(2)}</div>
+            {revenue.total28dUSD > 0 && (
+              <div className="text-lg font-medium text-slate-300">${revenue.total28dUSD.toFixed(2)}</div>
+            )}
           </div>
           <div className="rounded border border-[rgba(96,165,250,0.25)] bg-[rgba(255,255,255,0.03)] p-4">
             <div className="text-slate-400 text-xs">Общий доход</div>
-            <div className="text-2xl font-semibold mt-1">{revenue.totalAll.toFixed(2)}</div>
+            <div className="text-xl font-semibold mt-1">₽{revenue.totalAll.toFixed(2)}</div>
+            {revenue.totalAllUSD > 0 && (
+              <div className="text-lg font-medium text-slate-300">${revenue.totalAllUSD.toFixed(2)}</div>
+            )}
           </div>
         </div>
       </Card>

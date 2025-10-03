@@ -13,6 +13,8 @@ datasource db {
 model Product {
   id        String   @id @default(cuid())
   title     String
+  titleEn   String?  // английское название (опциональное)
+  slug      String?  @unique // URL-friendly идентификатор (опциональный)
   price     Float
   priceUSD  Float?
   video     String   // путь к gif/видео файлу
@@ -40,4 +42,16 @@ model Order {
   updatedAt       DateTime @updatedAt
 
   @@map("orders")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // хешированный пароль
+  email     String?  @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
 }

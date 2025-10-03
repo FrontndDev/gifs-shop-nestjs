@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { generateSlug, createUniqueSlug } from '@/lib/slug'
 
 // GET /api/products/[id] - получить продукт по ID
 export async function GET(
@@ -60,27 +61,50 @@ export async function PUT(
   try {
     const { id } = await context.params
     const body = await request.json()
-    const { title, price, priceUSD, video, badge, showcase, profileColor, theme, original } = body
+    const { title, titleEn, price, priceUSD, video, badge, showcase, profileColor, theme, original } = body
     const numericPriceRaw = typeof price === 'string' ? parseFloat(price) : (typeof price === 'number' ? price : undefined)
     const numericPriceUSDRaw = typeof priceUSD === 'string' ? parseFloat(priceUSD) : (typeof priceUSD === 'number' ? priceUSD : undefined)
     const numericPrice = (numericPriceRaw !== undefined && !Number.isNaN(numericPriceRaw)) ? numericPriceRaw : undefined
     const numericPriceUSD = (numericPriceUSDRaw !== undefined && !Number.isNaN(numericPriceUSDRaw)) ? numericPriceUSDRaw : undefined
 
+    // Если titleEn изменился, нужно обновить slug
+    let updateData: any = {
+      title,
+      titleEn,
+      price: numericPrice === undefined ? undefined : numericPrice,
+      priceUSD: numericPriceUSD === undefined ? undefined : numericPriceUSD,
+      video,
+      badge: badge === '' ? null : badge,
+      showcase,
+      profileColor,
+      theme,
+      original
+    }
+
+    // Если titleEn изменился, генерируем новый slug
+    if (titleEn) {
+      const baseSlug = generateSlug(titleEn)
+      
+      // Получаем все существующие slug кроме текущего
+      const existingProducts = await prisma.product.findMany({
+        where: { id: { not: id } },
+        select: { slug: true }
+      })
+      const existingSlugs = existingProducts.map(p => p.slug).filter(Boolean)
+      
+      // Создаем уникальный slug
+      const slug = await createUniqueSlug(baseSlug, existingSlugs)
+      updateData.slug = slug
+    } else {
+      // Если titleEn пустой, slug тоже должен быть null
+      updateData.slug = null
+    }
+
     const product = await prisma.product.update({
       where: {
         id
       },
-      data: {
-        title,
-        price: numericPrice === undefined ? undefined : numericPrice,
-        priceUSD: numericPriceUSD === undefined ? undefined : numericPriceUSD,
-        video,
-        badge: badge === '' ? null : badge,
-        showcase,
-        profileColor,
-        theme,
-        original
-      }
+      data: updateData
     })
 
     return NextResponse.json(product)

@@ -1,10 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 export const runtime = 'nodejs'
 
+// Проверка авторизации админа
+async function checkAdminAuth(request: NextRequest) {
+  const token = getTokenFromRequest(request)
+  if (!token) {
+    return { error: 'No token provided', status: 401 }
+  }
+
+  const payload = verifyToken(token)
+  if (!payload) {
+    return { error: 'Invalid token', status: 401 }
+  }
+
+  // Проверяем, что админ существует и активен
+  const admin = await prisma.admin.findUnique({
+    where: { id: payload.id }
+  })
+
+  if (!admin || !admin.isActive) {
+    return { error: 'Admin not found or inactive', status: 401 }
+  }
+
+  return { admin }
+}
+
 // GET /api/orders - получить все заказы
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Проверяем авторизацию
+    const authResult = await checkAdminAuth(request)
+    if ('error' in authResult) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.status }
+      )
+    }
+
     const orders = await prisma.order.findMany({
       orderBy: {
         createdAt: 'desc'
