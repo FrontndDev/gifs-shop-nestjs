@@ -1,7 +1,5 @@
 import Stripe from 'stripe'
 
-export type StripeEnv = 'test' | 'live'
-
 export function getStripeInstance(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY
   if (!secretKey) {
