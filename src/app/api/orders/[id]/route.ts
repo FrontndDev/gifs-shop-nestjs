@@ -86,9 +86,24 @@ export async function GET(
             
             // Создаем URL для скачивания
             // Используем переменную окружения для правильного домена
-            const baseUrl = process.env.FRONTEND_BASE_URL || process.env.VERCEL_URL 
-              ? `https://${process.env.VERCEL_URL}` 
-              : request.nextUrl.origin
+            console.log('Environment variables:', {
+              FRONTEND_BASE_URL: process.env.FRONTEND_BASE_URL,
+              VERCEL_URL: process.env.VERCEL_URL,
+              NODE_ENV: process.env.NODE_ENV
+            })
+            
+            let baseUrl = process.env.FRONTEND_BASE_URL
+            if (!baseUrl && process.env.VERCEL_URL) {
+              baseUrl = `https://${process.env.VERCEL_URL}`
+            }
+            if (!baseUrl) {
+              // Используем хост из заголовков запроса как fallback
+              const host = request.headers.get('host')
+              const protocol = request.headers.get('x-forwarded-proto') || 'https'
+              baseUrl = `${protocol}://${host}`
+            }
+            
+            console.log('Using baseUrl:', baseUrl)
             const downloadUrl = `${baseUrl}/api/download/temp/${token}`
             
             downloads.push({

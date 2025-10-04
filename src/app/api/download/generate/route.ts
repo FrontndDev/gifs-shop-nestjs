@@ -80,9 +80,17 @@ export async function POST(request: NextRequest) {
 
     // Создаем URL для скачивания
     // Используем переменную окружения для правильного домена
-    const baseUrl = process.env.FRONTEND_BASE_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : request.nextUrl.origin
+    let baseUrl = process.env.FRONTEND_BASE_URL
+    if (!baseUrl && process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`
+    }
+    if (!baseUrl) {
+      // Используем хост из заголовков запроса как fallback
+      const host = request.headers.get('host')
+      const protocol = request.headers.get('x-forwarded-proto') || 'https'
+      baseUrl = `${protocol}://${host}`
+    }
+    
     const downloadUrl = `${baseUrl}/api/download/temp/${token}`
 
     return NextResponse.json({
