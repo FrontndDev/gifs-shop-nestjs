@@ -109,7 +109,7 @@ export async function POST(
       
       // Проверяем текущий статус заказа в БД
       const purchaseUnits = Array.isArray(statusData?.purchase_units) ? statusData.purchase_units : []
-      let customId = purchaseUnits.length ? (purchaseUnits[0]?.custom_id as string | undefined) : undefined
+      const customId = purchaseUnits.length ? (purchaseUnits[0]?.custom_id as string | undefined) : undefined
       
       if (customId) {
         const existingOrder = await prisma.order.findUnique({
