@@ -79,7 +79,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Создаем URL для скачивания
-    const downloadUrl = `${request.nextUrl.origin}/api/download/temp/${token}`
+    // Используем переменную окружения для правильного домена
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : request.nextUrl.origin
+    const downloadUrl = `${baseUrl}/api/download/temp/${token}`
 
     return NextResponse.json({
       token,
