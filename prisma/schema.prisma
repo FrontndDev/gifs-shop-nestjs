@@ -17,7 +17,7 @@ model Product {
   slug      String?  @unique // URL-friendly идентификатор (опциональный)
   price     Float
   priceUSD  Float?
-  video     String   // путь к gif/видео файлу
+  video     String   // путь к MP4 видео файлу
   original  String?  // приватная ссылка, доступна только после оплаты
   badge     String?  // опциональный бейдж (Хит продаж, Новинка, etc.)
   showcase      String?
@@ -38,10 +38,26 @@ model Order {
   colorTheme      String   // Цветовая гамма
   details         String   // Детали оформления
   status          String   @default("pending") // статус заказа
+  paymentProvider String?  // способ оплаты: 'stripe', 'paypal', 'yookassa', 'free'
+  currency        String?  // валюта оплаты: 'USD', 'RUB'
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@map("orders")
+}
+
+model DownloadLink {
+  id        String   @id @default(cuid())
+  token     String   @unique // уникальный токен для ссылки
+  orderId   String   // ID заказа
+  productId String   // ID продукта
+  filename  String   // имя файла для скачивания
+  expiresAt DateTime // время истечения ссылки
+  isUsed    Boolean  @default(false) // использована ли ссылка
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("download_links")
 }
 
 model Admin {

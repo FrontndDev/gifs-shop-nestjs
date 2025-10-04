@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 // GET /api/orders/[id] - получить заказ по ID
 export async function GET(
@@ -60,13 +61,49 @@ export async function GET(
         const map = new Map<string, string | null>(
           products.map((p: { id: string; original: string | null }) => [p.id, p.original])
         )
-        const downloads = productIds
-          .map(pid => {
-            const orig = map.get(pid)
-            if (!orig) return null
-            return { productId: pid, url: orig }
-          })
-          .filter(Boolean)
+        const downloads = []
+        
+        for (const pid of productIds) {
+          const orig = map.get(pid)
+          if (!orig) continue
+          
+          // Генерируем временную ссылку для каждого приватного файла
+          try {
+            const token = randomUUID()
+            const expiresAt = new Date()
+            expiresAt.setHours(expiresAt.getHours() + 24) // 24 часа
+            
+            // Создаем запись о временной ссылке
+            await prisma.downloadLink.create({
+              data: {
+                token,
+                orderId: order.id,
+                productId: pid,
+                filename: orig,
+                expiresAt
+              }
+            })
+            
+            // Создаем URL для скачивания
+            const downloadUrl = `${request.nextUrl.origin}/api/download/temp/${token}`
+            
+            downloads.push({
+              productId: pid,
+              filename: orig,
+              downloadUrl,
+              expiresAt: expiresAt.toISOString()
+            })
+          } catch (error) {
+            console.error('Error generating download link:', error)
+            // Если не удалось создать ссылку, добавляем без неё
+            downloads.push({
+              productId: pid,
+              filename: orig,
+              hasPrivateFile: true,
+              error: 'Failed to generate download link'
+            })
+          }
+        }
 
         return NextResponse.json({ ...order, downloads })
       }
@@ -100,7 +137,9 @@ export async function PUT(
       style, 
       colorTheme, 
       details,
-      status 
+      status,
+      paymentProvider,
+      currency
     } = body
 
     // Попытаться обогатить details снапшотом цен и названия
@@ -153,7 +192,9 @@ export async function PUT(
         style,
         colorTheme,
         details: typeof enrichedDetails === 'string' ? enrichedDetails : details,
-        status
+        status,
+        paymentProvider,
+        currency
       }
     })
 

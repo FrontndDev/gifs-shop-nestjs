@@ -14,6 +14,8 @@ type Order = {
   colorTheme: string
   details: string
   status: string
+  paymentProvider?: string | null
+  currency?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -206,6 +208,11 @@ export default function AdminOrdersPage() {
 
       for (const o of paid) {
         const created = new Date(o.createdAt)
+        
+        // Определяем валюту по способу оплаты
+        const isUSD = o.paymentProvider === 'stripe' || o.paymentProvider === 'paypal'
+        const isRUB = o.paymentProvider === 'yookassa'
+        
         const raw: unknown = (() => { try { return typeof o.details === 'string' ? JSON.parse(o.details) : o.details } catch { return undefined } })()
         const itemsUnknown = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).items : undefined
         const items = Array.isArray(itemsUnknown) ? itemsUnknown as Array<unknown> : []
@@ -224,17 +231,28 @@ export default function AdminOrdersPage() {
             sum7d: 0, sum7dUSD: 0, 
             sum30d: 0, sum30dUSD: 0 
           }
-          stat.count += 1
-          if (typeof price === 'number') {
+          // Считаем только ту валюту, которой был оплачен заказ
+          // Исключаем бесплатные товары (цена = 0 или не указана)
+          let hasValidPrice = false
+          
+          if (isUSD && typeof priceUSD === 'number' && priceUSD > 0) {
+            hasValidPrice = true
+            if (created >= start30d) stat.sum30dUSD += priceUSD
+            if (created >= start7d) stat.sum7dUSD += priceUSD
+            if (created >= startToday) stat.sumTodayUSD += priceUSD
+          } else if ((isRUB || !o.paymentProvider) && typeof price === 'number' && price > 0) {
+            hasValidPrice = true
+            // Для YooKassa или старых заказов без paymentProvider считаем рубли
             if (created >= start30d) stat.sum30d += price
             if (created >= start7d) stat.sum7d += price
             if (created >= startToday) stat.sumToday += price
           }
-          if (typeof priceUSD === 'number') {
-            if (created >= start30d) stat.sum30dUSD += priceUSD
-            if (created >= start7d) stat.sum7dUSD += priceUSD
-            if (created >= startToday) stat.sumTodayUSD += priceUSD
+          
+          // Увеличиваем счетчик продаж только для платных товаров
+          if (hasValidPrice) {
+            stat.count += 1
           }
+          
           stat.title = title
           stat.price = price
           stat.priceUSD = priceUSD
@@ -244,8 +262,10 @@ export default function AdminOrdersPage() {
       }
 
       const list = Array.from(acc.values())
-      list.sort((a, b) => b.count - a.count || (b.sum30d - a.sum30d))
-      return list.slice(0, 3)
+      // Фильтруем товары, которые имеют хотя бы одну продажу (count > 0)
+      const paidItems = list.filter(item => item.count > 0)
+      paidItems.sort((a, b) => b.count - a.count || (b.sum30d + b.sum30dUSD) - (a.sum30d + a.sum30dUSD))
+      return paidItems.slice(0, 3)
     } catch {
       return []
     }
@@ -256,43 +276,60 @@ export default function AdminOrdersPage() {
     const now = new Date()
     const start7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const start28d = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
-    let totalAll = 0
+    let totalAllRUB = 0
     let totalAllUSD = 0
-    let total7d = 0
+    let total7dRUB = 0
     let total7dUSD = 0
-    let total28d = 0
+    let total28dRUB = 0
     let total28dUSD = 0
     
     for (const o of paid) {
       const created = new Date(o.createdAt)
       
+      // Определяем валюту по способу оплаты
+      const isUSD = o.paymentProvider === 'stripe' || o.paymentProvider === 'paypal'
+      const isRUB = o.paymentProvider === 'yookassa'
+      
       // Получаем товары из заказа
       const ids = extractProductIds(o.details)
-      let orderTotalRUB = 0
-      let orderTotalUSD = 0
+      let orderTotal = 0
       
       for (const id of ids) {
-        const priceRUB = productPriceById[id]
-        const priceUSD = productPriceUSDById[id]
-        if (typeof priceRUB === 'number') orderTotalRUB += priceRUB
-        if (typeof priceUSD === 'number') orderTotalUSD += priceUSD
+        // Считаем только ту валюту, которой был оплачен заказ
+        // Исключаем бесплатные товары (цена = 0 или не указана)
+        if (isUSD) {
+          const priceUSD = productPriceUSDById[id]
+          if (typeof priceUSD === 'number' && priceUSD > 0) {
+            orderTotal += priceUSD
+          }
+        } else if (isRUB) {
+          const priceRUB = productPriceById[id]
+          if (typeof priceRUB === 'number' && priceRUB > 0) {
+            orderTotal += priceRUB
+          }
+        } else {
+          // Для старых заказов без paymentProvider считаем рубли (по умолчанию)
+          const priceRUB = productPriceById[id]
+          if (typeof priceRUB === 'number' && priceRUB > 0) {
+            orderTotal += priceRUB
+          }
+        }
       }
       
-      totalAll += orderTotalRUB
-      totalAllUSD += orderTotalUSD
-      if (created >= start28d) {
-        total28d += orderTotalRUB
-        total28dUSD += orderTotalUSD
-      }
-      if (created >= start7d) {
-        total7d += orderTotalRUB
-        total7dUSD += orderTotalUSD
+      if (isUSD) {
+        totalAllUSD += orderTotal
+        if (created >= start28d) total28dUSD += orderTotal
+        if (created >= start7d) total7dUSD += orderTotal
+      } else {
+        totalAllRUB += orderTotal
+        if (created >= start28d) total28dRUB += orderTotal
+        if (created >= start7d) total7dRUB += orderTotal
       }
     }
     return { 
-      total7d, total7dUSD, 
-      total28d, total28dUSD, 
-      totalAll, totalAllUSD 
+      total7d: total7dRUB, total7dUSD, 
+      total28d: total28dRUB, total28dUSD, 
+      totalAll: totalAllRUB, totalAllUSD 
     }
   }, [orders, productPriceById, productPriceUSDById])
 
@@ -369,7 +406,7 @@ export default function AdminOrdersPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {topStats.map(s => {
-              const media = (s.image && /\.gif$/i.test(s.image)) ? s.image : (s.image && /\/uploads\//.test(s.image)) ? s.image : '/next.svg'
+              const media = (s.image && /\.mp4$/i.test(s.image)) ? s.image : (s.image && /\/uploads\//.test(s.image)) ? s.image : '/next.svg'
               return (
                 <div key={s.id} className="flex items-center gap-3 rounded border border-[rgba(96,165,250,0.25)] bg-[rgba(255,255,255,0.03)] p-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -458,6 +495,7 @@ export default function AdminOrdersPage() {
                 <th className="text-left p-2">Theme</th>
                 <th className="text-left p-2">Товары</th>
                 <th className="text-left p-2">Price</th>
+                <th className="text-left p-2">Payment</th>
                 <th className="text-left p-2">Status</th>
                 <th className="text-left p-2">Updated</th>
                 <th className="text-left p-2">Actions</th>
@@ -500,6 +538,13 @@ export default function AdminOrdersPage() {
                       const total = getOrderTotal(o)
                       if (total === null) return '-'
                       return total.toFixed(2)
+                    })()}
+                  </td>
+                  <td className="p-2">
+                    {(() => {
+                      if (!o.paymentProvider) return '-'
+                      const currency = o.currency || (o.paymentProvider === 'stripe' || o.paymentProvider === 'paypal' ? 'USD' : 'RUB')
+                      return `${o.paymentProvider.toUpperCase()} (${currency})`
                     })()}
                   </td>
                   <td className="p-2">{o.status}</td>

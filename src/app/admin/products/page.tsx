@@ -29,6 +29,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadingPrivate, setUploadingPrivate] = useState(false)
 
   const [form, setForm] = useState({
     title: '',
@@ -58,6 +59,7 @@ export default function AdminProductsPage() {
     original: '',
   })
   const [editUploading, setEditUploading] = useState(false)
+  const [editUploadingPrivate, setEditUploadingPrivate] = useState(false)
 
   const fetchProducts = async () => {
     setLoading(true)
@@ -75,13 +77,29 @@ export default function AdminProductsPage() {
 
   useEffect(() => { fetchProducts() }, [])
 
-  const uploadGif = async (file: File): Promise<string> => {
+  const uploadVideo = async (file: File): Promise<string> => {
     const fd = new FormData()
     fd.append('file', file)
     const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd })
     if (!res.ok) throw new Error('Upload failed')
     const data = await res.json()
     return data.url as string
+  }
+
+  const uploadPrivateFile = async (file: File): Promise<string> => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch(`${API}/api/upload/private`, { 
+      method: 'POST', 
+      body: fd,
+      credentials: 'include'
+    })
+    if (!res.ok) {
+      const errorData = await res.json()
+      throw new Error(errorData.error || 'Private upload failed')
+    }
+    const data = await res.json()
+    return data.filename as string
   }
 
   const onCreate = async () => {
@@ -183,24 +201,42 @@ export default function AdminProductsPage() {
           <div className="flex items-center gap-3">
             <input
               type="file"
-              accept="image/gif"
+              accept="video/mp4"
               className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-1.5 text-sm text-white"
               onChange={async (e) => {
                 const file = e.target.files?.[0]
                 if (!file) return
                 try {
                   setUploading(true)
-                  const url = await uploadGif(file)
+                  const url = await uploadVideo(file)
                   setForm(f => ({ ...f, video: url }))
                 } catch (e: unknown) {
                   setError(e instanceof Error ? e.message : 'Upload error')
                 } finally { setUploading(false) }
               }}
             />
-            {form.video && <span className="neon-badge">GIF ready</span>}
+            {form.video && <span className="neon-badge">MP4 ready</span>}
           </div>
           <Input placeholder="Badge" value={form.badge} onChange={e=>setForm(f=>({...f,badge:e.target.value}))} />
-          <Input placeholder="Original link (private)" value={form.original} onChange={e=>setForm(f=>({...f,original:e.target.value}))} />
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              accept=".zip,.rar,.7z,.tar,.gz,.pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.bmp,.svg,.mp4,.avi,.mov,.wmv,.mkv,.mp3,.wav,.flac,.aac,.psd,.ai,.eps,.sketch,.exe,.msi,.dmg,.pkg,.json,.xml,.csv,.xlsx,.xls"
+              className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-1.5 text-sm text-white"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                try {
+                  setUploadingPrivate(true)
+                  const filename = await uploadPrivateFile(file)
+                  setForm(f => ({ ...f, original: filename }))
+                } catch (e: unknown) {
+                  setError(e instanceof Error ? e.message : 'Private upload error')
+                } finally { setUploadingPrivate(false) }
+              }}
+            />
+            {form.original && <span className="neon-badge">Private file ready</span>}
+          </div>
           <select
             className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
             value={form.showcase}
@@ -236,7 +272,9 @@ export default function AdminProductsPage() {
             <option value="free">free</option>
           </select>
           <div>
-            <Button onClick={onCreate} disabled={uploading}>{uploading ? 'Uploading...' : 'Create'}</Button>
+            <Button onClick={onCreate} disabled={uploading || uploadingPrivate}>
+              {uploading ? 'Uploading MP4...' : uploadingPrivate ? 'Uploading private file...' : 'Create'}
+            </Button>
           </div>
         </div>
       </Card>
@@ -258,6 +296,7 @@ export default function AdminProductsPage() {
                 <th className="text-left p-2">Showcase</th>
                 <th className="text-left p-2">Profile Color</th>
                 <th className="text-left p-2">Theme</th>
+                <th className="text-left p-2">Private File</th>
                 <th className="text-left p-2">Actions</th>
               </tr>
             </thead>
@@ -273,6 +312,13 @@ export default function AdminProductsPage() {
                   <td className="p-2">{p.showcase ?? '-'}</td>
                   <td className="p-2">{p.profileColor ?? '-'}</td>
                   <td className="p-2">{p.theme ?? '-'}</td>
+                  <td className="p-2">
+                    {p.original ? (
+                      <span className="neon-badge text-xs">File ready</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
                   <td className="p-2 flex gap-2">
                     <Button variant="secondary" size="sm" onClick={() => openEdit(p)}>Edit</Button>
                     <Button variant="danger" size="sm" onClick={() => onDelete(p.id)}>Delete</Button>
@@ -293,24 +339,42 @@ export default function AdminProductsPage() {
           <div className="md:col-span-2 flex items-center gap-3">
             <input
               type="file"
-              accept="image/gif"
+              accept="video/mp4"
               className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-1.5 text-sm text-white"
               onChange={async (e) => {
                 const file = e.target.files?.[0]
                 if (!file) return
                 try {
                   setEditUploading(true)
-                  const url = await uploadGif(file)
+                  const url = await uploadVideo(file)
                   setEditForm(f => ({ ...f, video: url }))
                 } catch (e: unknown) {
                   setError(e instanceof Error ? e.message : 'Upload error')
                 } finally { setEditUploading(false) }
               }}
             />
-            {editForm.video && <span className="neon-badge">GIF ready</span>}
+            {editForm.video && <span className="neon-badge">MP4 ready</span>}
           </div>
           <Input placeholder="Badge" value={editForm.badge} onChange={e=>setEditForm(f=>({...f,badge:e.target.value}))} />
-          <Input placeholder="Original link (private)" value={editForm.original} onChange={e=>setEditForm(f=>({...f,original:e.target.value}))} />
+          <div className="md:col-span-2 flex items-center gap-3">
+            <input
+              type="file"
+              accept=".zip,.rar,.7z,.tar,.gz,.pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.gif,.bmp,.svg,.mp4,.avi,.mov,.wmv,.mkv,.mp3,.wav,.flac,.aac,.psd,.ai,.eps,.sketch,.exe,.msi,.dmg,.pkg,.json,.xml,.csv,.xlsx,.xls"
+              className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-1.5 text-sm text-white"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                try {
+                  setEditUploadingPrivate(true)
+                  const filename = await uploadPrivateFile(file)
+                  setEditForm(f => ({ ...f, original: filename }))
+                } catch (e: unknown) {
+                  setError(e instanceof Error ? e.message : 'Private upload error')
+                } finally { setEditUploadingPrivate(false) }
+              }}
+            />
+            {editForm.original && <span className="neon-badge">Private file ready</span>}
+          </div>
           <select
             className="w-full rounded-md border border-[rgba(96,165,250,0.45)] bg-[rgba(20,36,72,0.9)] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[rgba(34,211,238,0.7)]"
             value={editForm.showcase}
@@ -348,7 +412,9 @@ export default function AdminProductsPage() {
         </div>
         <div className="flex gap-3 justify-end mt-4">
           <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={saveEdit} disabled={editUploading}>{editUploading ? 'Uploading...' : 'Save'}</Button>
+          <Button onClick={saveEdit} disabled={editUploading || editUploadingPrivate}>
+            {editUploading ? 'Uploading MP4...' : editUploadingPrivate ? 'Uploading private file...' : 'Save'}
+          </Button>
         </div>
       </Modal>
     </div>

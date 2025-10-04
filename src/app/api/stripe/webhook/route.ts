@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyStripeWebhookSignature } from '@/lib/stripe'
+import { sendTelegramNotification } from '@/lib/telegram'
 import Stripe from 'stripe'
 
 export const runtime = 'nodejs'
@@ -48,10 +49,17 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   if (orderId) {
     await prisma.order.update({ 
       where: { id: orderId }, 
-      data: { status: 'paid' } 
+      data: { 
+        status: 'paid',
+        paymentProvider: 'stripe',
+        currency: paymentIntent.currency?.toUpperCase() || 'USD'
+      } 
     }).catch((error) => {
       console.error('Failed to update order status to paid:', error)
     })
+
+    // Отправляем уведомление в Telegram при успешной оплате
+    await sendOrderNotification(orderId, 'stripe', paymentIntent.currency?.toUpperCase() || 'USD')
   }
 }
 
@@ -84,9 +92,72 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   if (orderId && session.payment_status === 'paid') {
     await prisma.order.update({ 
       where: { id: orderId }, 
-      data: { status: 'paid' } 
+      data: { 
+        status: 'paid',
+        paymentProvider: 'stripe',
+        currency: session.currency?.toUpperCase() || 'USD'
+      } 
     }).catch((error) => {
       console.error('Failed to update order status to paid from checkout session:', error)
     })
+
+    // Отправляем уведомление в Telegram при успешной оплате
+    await sendOrderNotification(orderId, 'stripe', session.currency?.toUpperCase() || 'USD')
+  }
+}
+
+async function sendOrderNotification(orderId: string, paymentProvider: string, currency: string) {
+  try {
+    // Получаем данные заказа
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        name: true,
+        telegramDiscord: true,
+        steamProfile: true,
+        details: true
+      }
+    })
+
+    if (!order) {
+      console.error('Order not found for notification:', orderId)
+      return
+    }
+
+    // Парсим детали заказа для получения товаров
+    let items: any[] = []
+    try {
+      const details = JSON.parse(order.details as string)
+      if (details && details.items && Array.isArray(details.items)) {
+        items = details.items
+      }
+    } catch (e) {
+      console.error('Error parsing order details:', e)
+      return
+    }
+
+    // Отправляем уведомление для каждого товара
+    for (const item of items) {
+      // Получаем информацию о продукте
+      const product = await prisma.product.findUnique({
+        where: { id: item.id },
+        select: { title: true }
+      })
+
+      if (product) {
+        await sendTelegramNotification({
+          productName: product.title,
+          price: item.price || 0,
+          currency: currency,
+          email: order.name, // Используем поле name как email
+          telegramDiscord: order.telegramDiscord || undefined,
+          steamProfile: order.steamProfile || undefined,
+          orderId: orderId,
+          paymentProvider: paymentProvider
+        })
+      }
+    }
+  } catch (error) {
+    console.error('Error sending order notification:', error)
   }
 }

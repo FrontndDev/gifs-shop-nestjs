@@ -44,7 +44,14 @@ export async function POST(request: NextRequest) {
         free: true,
       }
 
-      await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } }).catch(() => undefined)
+      await prisma.order.update({ 
+        where: { id: orderId }, 
+        data: { 
+          status: 'paid',
+          paymentProvider: 'yookassa',
+          currency: body.currency || 'RUB'
+        } 
+      }).catch(() => undefined)
 
       return NextResponse.json(payment, { status: 201 })
     }
@@ -63,7 +70,14 @@ export async function POST(request: NextRequest) {
         test: true,
       }
 
-      await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } }).catch(() => undefined)
+      await prisma.order.update({ 
+        where: { id: orderId }, 
+        data: { 
+          status: 'paid',
+          paymentProvider: 'yookassa',
+          currency: body.currency || 'RUB'
+        } 
+      }).catch(() => undefined)
 
       return NextResponse.json(payment, { status: 201 })
     }

@@ -6,7 +6,7 @@ import path from 'path'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const MAX_SIZE_BYTES = 20 * 1024 * 1024 // 20MB
+const MAX_SIZE_BYTES = 100 * 1024 * 1024 // 100MB для MP4
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,12 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File is required (field name: file)' }, { status: 400 })
     }
 
-    if (file.type !== 'image/gif') {
-      return NextResponse.json({ error: 'Only GIF files are allowed' }, { status: 400 })
+    // Проверяем MIME-тип или расширение файла
+    const isMP4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4')
+    
+    if (!isMP4) {
+      return NextResponse.json({ error: 'Only MP4 files are allowed' }, { status: 400 })
     }
 
     if (file.size > MAX_SIZE_BYTES) {
-      return NextResponse.json({ error: 'File too large. Max 20MB' }, { status: 400 })
+      return NextResponse.json({ error: 'File too large. Max 100MB' }, { status: 400 })
     }
 
     const arrayBuffer = await file.arrayBuffer()
@@ -30,7 +33,7 @@ export async function POST(request: NextRequest) {
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
     await fs.mkdir(uploadsDir, { recursive: true })
 
-    const filename = `${randomUUID()}.gif`
+    const filename = `${randomUUID()}.mp4`
     const filePath = path.join(uploadsDir, filename)
     await fs.writeFile(filePath, buffer)
 
