@@ -57,6 +57,15 @@ export async function POST(request: NextRequest) {
         currency: currency.toUpperCase()
       })
       
+      // Проверяем текущий статус заказа перед обновлением
+      const existingOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { status: true }
+      })
+      
+      const wasAlreadyPaid = existingOrder?.status === 'paid'
+      console.log('Order was already paid in DB (webhook):', wasAlreadyPaid)
+      
       await prisma.order.updateMany({ 
         where: { id: orderId }, 
         data: { 
@@ -66,10 +75,12 @@ export async function POST(request: NextRequest) {
         } 
       })
 
-      // Отправляем уведомление в Telegram при успешной оплате
-      if (status === 'paid') {
-        console.log('Sending Telegram notification for order:', orderId)
+      // Отправляем уведомление в Telegram только если заказ не был оплачен ранее
+      if (status === 'paid' && !wasAlreadyPaid) {
+        console.log('Sending Telegram notification for newly paid order:', orderId)
         await sendOrderNotification(orderId, 'paypal', currency.toUpperCase())
+      } else if (status === 'paid' && wasAlreadyPaid) {
+        console.log('Order was already paid, skipping notification (webhook)')
       }
     }
 
