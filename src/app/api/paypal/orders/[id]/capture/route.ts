@@ -130,8 +130,13 @@ export async function POST(
           } 
         }).catch(() => undefined)
         
-        // Уведомления отправляются через webhook, не дублируем здесь
-        console.log('Order status updated, notification will be sent via webhook if needed')
+        // Отправляем уведомление только если заказ не был оплачен ранее
+        if (!wasAlreadyPaid) {
+          console.log('Sending notification for newly paid order:', customId)
+          await sendOrderNotification(customId, 'paypal', purchaseUnits[0]?.amount?.currency_code || 'USD')
+        } else {
+          console.log('Order was already paid, skipping notification')
+        }
       }
       
       return NextResponse.json(statusData)
@@ -202,8 +207,13 @@ export async function POST(
             } 
           }).catch(() => undefined)
           
-          // Уведомления отправляются через webhook, не дублируем здесь
-          console.log('Order status updated (ORDER_ALREADY_CAPTURED), notification will be sent via webhook if needed')
+          // Отправляем уведомление только если заказ не был оплачен ранее
+          if (!wasAlreadyPaid) {
+            console.log('Sending notification for newly paid order (ORDER_ALREADY_CAPTURED):', customId)
+            await sendOrderNotification(customId, 'paypal', purchaseUnits[0]?.amount?.currency_code || 'USD')
+          } else {
+            console.log('Order was already paid, skipping notification (ORDER_ALREADY_CAPTURED)')
+          }
         }
       } catch {}
       
@@ -248,8 +258,13 @@ export async function POST(
           } 
         }).catch(() => undefined)
         
-        // Уведомления отправляются через webhook, не дублируем здесь
-        console.log('Order status updated (successful capture), notification will be sent via webhook if needed')
+        // Отправляем уведомление только если заказ не был оплачен ранее
+        if (!wasAlreadyPaid) {
+          console.log('Sending notification for newly paid order (successful capture):', customId)
+          await sendOrderNotification(customId, 'paypal', purchaseUnits[0]?.amount?.currency_code || 'USD')
+        } else {
+          console.log('Order was already paid, skipping notification (successful capture)')
+        }
       }
     } catch {}
     return NextResponse.json(data)

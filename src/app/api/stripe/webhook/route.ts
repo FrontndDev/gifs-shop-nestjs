@@ -47,6 +47,15 @@ export async function POST(request: NextRequest) {
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   const orderId = paymentIntent.metadata?.orderId || paymentIntent.metadata?.order_id
   if (orderId) {
+    // Проверяем текущий статус заказа перед обновлением
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true }
+    })
+    
+    const wasAlreadyPaid = existingOrder?.status === 'paid'
+    console.log('Order was already paid in DB (payment_intent.succeeded):', wasAlreadyPaid)
+    
     await prisma.order.update({ 
       where: { id: orderId }, 
       data: { 
@@ -58,8 +67,13 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       console.error('Failed to update order status to paid:', error)
     })
 
-    // Отправляем уведомление в Telegram при успешной оплате
-    await sendOrderNotification(orderId, 'stripe', paymentIntent.currency?.toUpperCase() || 'USD')
+    // Отправляем уведомление только если заказ не был оплачен ранее
+    if (!wasAlreadyPaid) {
+      console.log('Sending Telegram notification for newly paid order (payment_intent.succeeded):', orderId)
+      await sendOrderNotification(orderId, 'stripe', paymentIntent.currency?.toUpperCase() || 'USD')
+    } else {
+      console.log('Order was already paid, skipping notification (payment_intent.succeeded)')
+    }
   }
 }
 
@@ -90,6 +104,15 @@ async function handlePaymentIntentCanceled(paymentIntent: Stripe.PaymentIntent) 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const orderId = session.metadata?.orderId || session.metadata?.order_id
   if (orderId && session.payment_status === 'paid') {
+    // Проверяем текущий статус заказа перед обновлением
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true }
+    })
+    
+    const wasAlreadyPaid = existingOrder?.status === 'paid'
+    console.log('Order was already paid in DB (checkout.session.completed):', wasAlreadyPaid)
+    
     await prisma.order.update({ 
       where: { id: orderId }, 
       data: { 
@@ -101,8 +124,13 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       console.error('Failed to update order status to paid from checkout session:', error)
     })
 
-    // Отправляем уведомление в Telegram при успешной оплате
-    await sendOrderNotification(orderId, 'stripe', session.currency?.toUpperCase() || 'USD')
+    // Отправляем уведомление только если заказ не был оплачен ранее
+    if (!wasAlreadyPaid) {
+      console.log('Sending Telegram notification for newly paid order (checkout.session.completed):', orderId)
+      await sendOrderNotification(orderId, 'stripe', session.currency?.toUpperCase() || 'USD')
+    } else {
+      console.log('Order was already paid, skipping notification (checkout.session.completed)')
+    }
   }
 }
 
