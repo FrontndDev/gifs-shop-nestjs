@@ -125,7 +125,7 @@ async function sendOrderNotification(orderId: string, paymentProvider: string, c
     }
 
     // Парсим детали заказа для получения товаров
-    let items: any[] = []
+    let items: Array<{ id: string; title?: string; price?: number }> = []
     try {
       const details = JSON.parse(order.details as string)
       if (details && details.items && Array.isArray(details.items)) {
