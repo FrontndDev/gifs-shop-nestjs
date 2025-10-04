@@ -86,7 +86,7 @@ export async function GET(
             
             // Создаем URL для скачивания
             // Используем переменную окружения для правильного домена
-            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
+            const baseUrl = process.env.FRONTEND_BASE_URL || process.env.VERCEL_URL 
               ? `https://${process.env.VERCEL_URL}` 
               : request.nextUrl.origin
             const downloadUrl = `${baseUrl}/api/download/temp/${token}`
