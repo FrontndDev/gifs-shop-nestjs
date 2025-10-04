@@ -14,13 +14,24 @@ export async function sendTelegramNotification(data: TelegramNotificationData) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN
     const chatId = process.env.TELEGRAM_CHAT_ID
 
+    console.log('Telegram notification attempt:', {
+      hasBotToken: !!botToken,
+      hasChatId: !!chatId,
+      botTokenLength: botToken?.length,
+      chatId: chatId
+    })
+
     if (!botToken || !chatId) {
-      console.warn('Telegram bot token or chat ID not configured')
+      console.warn('Telegram bot token or chat ID not configured', {
+        botToken: !!botToken,
+        chatId: !!chatId
+      })
       return
     }
 
     // Форматируем сообщение
     const message = formatNotificationMessage(data)
+    console.log('Formatted message:', message)
 
     // Отправляем сообщение в Telegram
     const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -35,6 +46,8 @@ export async function sendTelegramNotification(data: TelegramNotificationData) {
         disable_web_page_preview: true
       })
     })
+
+    console.log('Telegram API response status:', response.status)
 
     if (!response.ok) {
       const errorData = await response.text()
