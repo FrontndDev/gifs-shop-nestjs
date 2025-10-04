@@ -128,7 +128,7 @@ export async function GET(
     // Получаем оригинальное имя файла из продукта или используем filename
     const originalFilename = filename // Можно добавить поле в БД для оригинального имени
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': mimeType,

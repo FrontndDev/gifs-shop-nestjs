@@ -131,7 +131,7 @@ export async function GET(
     // Кодируем имя файла для безопасной передачи в HTTP заголовках
     const encodedFilename = encodeURIComponent(originalFilename)
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': mimeType,
